@@ -1,0 +1,1 @@
+This is raw assets folder
