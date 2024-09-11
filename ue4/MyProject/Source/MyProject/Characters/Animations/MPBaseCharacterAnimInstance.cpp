@@ -24,7 +24,7 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	UMPBaseCharacterMovementComponent* CharacterMovement = CachedBaseCharacter->GetBaseCharacterMovementComponent();
 	Speed = CharacterMovement->Velocity.Size();
 	bIsFalling = CharacterMovement->IsFalling();
-
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsSprinting = CharacterMovement->IsSprinting();
+	bIsProning = CharacterMovement->IsProning();
 }

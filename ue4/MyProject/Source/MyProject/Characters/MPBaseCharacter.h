@@ -22,9 +22,12 @@ public:
 	virtual void LookUp(float Value) {};
 
 	virtual void ChangeCrouchState();
+	virtual void ChangeProneState();
 
 	virtual void StartSprint();
 	virtual void StopSprint();
+
+	virtual void Jump();
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -37,8 +40,8 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character | Movement")
 	void OnStopSprint();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement")
-	float SprintSpeed = 800.f;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement")
+	//float SprintSpeed = 800.f;
 
 	virtual bool CanSprint();
 

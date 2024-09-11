@@ -31,6 +31,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsSprinting = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsProning = false;
+
 private:
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
 };

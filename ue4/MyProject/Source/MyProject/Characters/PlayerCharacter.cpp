@@ -5,17 +5,21 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
+	GetMesh()->SetVisibility(false);
+	GetMesh()->SetHiddenInGame(true);
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring arm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
-	SpringArmComponent->bUsePawnControlRotation = true;
+	SpringArmComponent->bUsePawnControlRotation = 1;
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
@@ -65,6 +69,18 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 {
 	Super::OnEndCrouch(HalfHeight, ScaleHalfHeight);
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
+}
+
+void APlayerCharacter::OnStartProne(float CurrentCapsuleHalfHeight, float ProneCapsuleHalfHeight)
+{
+	float HeightDifference = CurrentCapsuleHalfHeight - ProneCapsuleHalfHeight;
+	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
+}
+
+void APlayerCharacter::OnEndProne(float StandingCapsuleHalfHeight, float CurrentCapsuleHalfHeight)
+{
+	float HeightDifference = StandingCapsuleHalfHeight - CurrentCapsuleHalfHeight;
+	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
 }
 
 bool APlayerCharacter::CanJumpInternal_Implementation() const

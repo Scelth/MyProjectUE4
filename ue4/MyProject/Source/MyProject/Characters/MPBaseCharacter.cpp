@@ -6,7 +6,7 @@
 #include "../Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
-	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName)) 
+	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	MPBaseCharacterMovementComponent = StaticCast<UMPBaseCharacterMovementComponent*>(GetCharacterMovement());
 }
@@ -24,19 +24,44 @@ void AMPBaseCharacter::ChangeCrouchState()
 	}
 }
 
+void AMPBaseCharacter::ChangeProneState()
+{
+	if (GetCharacterMovement()->IsCrouching())
+	{
+		GetBaseCharacterMovementComponent()->StartProne();
+	}
+
+	else if (GetBaseCharacterMovementComponent()->IsProning())
+	{
+		GetBaseCharacterMovementComponent()->StopProne();
+		UnCrouch();
+	}
+}
+
 void AMPBaseCharacter::StartSprint()
 {
-	bIsSprintRequested = true;
-
-	if (bIsCrouched)
+	if (!GetBaseCharacterMovementComponent()->IsProning())
 	{
-		UnCrouch();
+		bIsSprintRequested = true;
+
+		if (GetCharacterMovement()->IsCrouching())
+		{
+			UnCrouch();
+		}
 	}
 }
 
 void AMPBaseCharacter::StopSprint()
 {
 	bIsSprintRequested = false;
+}
+
+void AMPBaseCharacter::Jump()
+{
+	if (!GetBaseCharacterMovementComponent()->IsProning())
+	{
+		Super::Jump();
+	}
 }
 
 void AMPBaseCharacter::Tick(float DeltaTime)
@@ -53,15 +78,15 @@ bool AMPBaseCharacter::CanSprint()
 
 void AMPBaseCharacter::TryChangeSprintState()
 {
-	if (bIsSprintRequested && !MPBaseCharacterMovementComponent->IsSprinting() && CanSprint())
+	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint())
 	{
-		MPBaseCharacterMovementComponent->StartSprint();
+		GetBaseCharacterMovementComponent()->StartSprint();
 		OnStartSprint();
 	}
 
-	if (!bIsSprintRequested && MPBaseCharacterMovementComponent->IsSprinting())
+	if (!bIsSprintRequested && GetBaseCharacterMovementComponent()->IsSprinting())
 	{
-		MPBaseCharacterMovementComponent->StopSprint();
+		GetBaseCharacterMovementComponent()->StopSprint();
 		OnStopSprint();
 	}
 }

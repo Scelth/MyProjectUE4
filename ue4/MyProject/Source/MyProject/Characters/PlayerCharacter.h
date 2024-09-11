@@ -25,6 +25,9 @@ public:
 	virtual void OnStartCrouch(float HalfHeight, float ScaleHalfHeight) override;
 	virtual void OnEndCrouch(float HalfHeight, float ScaleHalfHeight) override;
 
+	virtual void OnStartProne(float CurrentCapsuleHalfHeight, float ProneCapsuleHalfHeight);
+	virtual void OnEndProne(float StandingCapsuleHalfHeight, float CurrentCapsuleHalfHeight);
+
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 

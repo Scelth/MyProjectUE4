@@ -22,6 +22,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeCrouchState);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AMPPlayerController::StopSprint);
+	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeProneState);
 }
 
 void AMPPlayerController::MoveForward(float Value)
@@ -61,6 +62,14 @@ void AMPPlayerController::ChangeCrouchState()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->ChangeCrouchState();
+	}
+}
+
+void AMPPlayerController::ChangeProneState()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ChangeProneState();
 	}
 }
 
