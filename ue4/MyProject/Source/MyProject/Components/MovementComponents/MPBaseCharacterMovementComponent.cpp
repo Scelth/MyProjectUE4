@@ -38,37 +38,40 @@ void UMPBaseCharacterMovementComponent::StopSprint()
 
 void UMPBaseCharacterMovementComponent::StartProne()
 {
-    if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
-    {
-        return;
-    }
+	if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
+	{
+		return;
+	}
 
-    float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	float HeightDifference = CurrentCapsuleHalfHeight - ProneCapsuleHalfHeight;
 
-    bIsProning = true;
-    CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
+	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
 
-    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
-    {
-        PlayerCharacter->OnStartProne(CurrentCapsuleHalfHeight, ProneCapsuleHalfHeight);
-    }
+	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
+	{
+		PlayerCharacter->OnStartProne(HeightDifference);
+	}
+
+	bIsProning = true;
 }
-
 
 void UMPBaseCharacterMovementComponent::StopProne()
 {
-    if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
-    {
-        return;
-    }
+	if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
+	{
+		return;
+	}
 
-    float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	float HeightDifference = StandingCapsuleHalfHeight - CurrentCapsuleHalfHeight;
 
-    bIsProning = false;
-    CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), StandingCapsuleHalfHeight);
+	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, StandingCapsuleHalfHeight);
 
-    if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
-    {
-        PlayerCharacter->OnEndProne(StandingCapsuleHalfHeight, CurrentCapsuleHalfHeight);
-    }
+	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
+	{
+		PlayerCharacter->OnEndProne(HeightDifference);
+	}
+
+	bIsProning = false;
 }

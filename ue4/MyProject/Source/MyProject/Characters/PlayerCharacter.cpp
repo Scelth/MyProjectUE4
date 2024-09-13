@@ -71,15 +71,13 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
 }
 
-void APlayerCharacter::OnStartProne(float CurrentCapsuleHalfHeight, float ProneCapsuleHalfHeight)
+void APlayerCharacter::OnStartProne(float HeightDifference)
 {
-	float HeightDifference = CurrentCapsuleHalfHeight - ProneCapsuleHalfHeight;
 	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
 }
 
-void APlayerCharacter::OnEndProne(float StandingCapsuleHalfHeight, float CurrentCapsuleHalfHeight)
+void APlayerCharacter::OnEndProne(float HeightDifference)
 {
-	float HeightDifference = StandingCapsuleHalfHeight - CurrentCapsuleHalfHeight;
 	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
 }
 

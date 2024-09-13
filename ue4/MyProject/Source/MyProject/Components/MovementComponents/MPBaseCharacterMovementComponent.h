@@ -29,10 +29,10 @@ protected:
 	float SprintSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
-	float ProneCapsuleRadius = 40.f;
+	float ProneCapsuleRadius = 34.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
-	float ProneCapsuleHalfHeight = 40.f;
+	float ProneCapsuleHalfHeight = 45.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
 	float StandingCapsuleHalfHeight = 90.f;
