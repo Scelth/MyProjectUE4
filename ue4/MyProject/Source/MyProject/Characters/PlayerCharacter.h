@@ -37,5 +37,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")
 	class USpringArmComponent* SpringArmComponent;
-
 };

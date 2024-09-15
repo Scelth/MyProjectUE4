@@ -27,4 +27,5 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsSprinting = CharacterMovement->IsSprinting();
 	bIsProning = CharacterMovement->IsProning();
+	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
 }

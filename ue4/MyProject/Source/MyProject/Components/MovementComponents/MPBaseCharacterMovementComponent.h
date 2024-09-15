@@ -24,18 +24,19 @@ public:
 	void StartProne();
 	void StopProne();
 
+	FORCEINLINE bool IsOutOfStamina() const { return bIsOutOfStamina; }
+
+	void SetIsOutOfStamina(bool bIsOutOfStamina_In);
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Sprint", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float SprintSpeed = 1200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
-	float ProneCapsuleRadius = 34.f;
+	float ProneCapsuleRadius = 60.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
-	float ProneCapsuleHalfHeight = 45.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone")
-	float StandingCapsuleHalfHeight = 90.f;
+	float ProneCapsuleHalfHeight = 60.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneSpeed = 150.f;
@@ -43,4 +44,10 @@ protected:
 private:
 	bool bIsSprinting = false;
 	bool bIsProning = false;
+	bool bIsOutOfStamina = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float ExhaustedSpeed = 200.f;
+
+	TSoftObjectPtr<class APlayerCharacter> CachedPlayerCharacter;
 };

@@ -9,18 +9,22 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	MPBaseCharacterMovementComponent = StaticCast<UMPBaseCharacterMovementComponent*>(GetCharacterMovement());
+	//CurrentStamina = MaxStamina;
 }
 
 void AMPBaseCharacter::ChangeCrouchState()
 {
-	if (GetCharacterMovement()->IsCrouching())
+	if(!GetBaseCharacterMovementComponent()->IsProning())
 	{
-		UnCrouch();
-	}
+		if (GetCharacterMovement()->IsCrouching())
+		{
+			UnCrouch();
+		}
 
-	else
-	{
-		Crouch();
+		else
+		{
+			Crouch();
+		}
 	}
 }
 
@@ -29,12 +33,13 @@ void AMPBaseCharacter::ChangeProneState()
 	if (GetCharacterMovement()->IsCrouching())
 	{
 		GetBaseCharacterMovementComponent()->StartProne();
+		UnCrouch();
 	}
 
 	else if (GetBaseCharacterMovementComponent()->IsProning())
 	{
 		GetBaseCharacterMovementComponent()->StopProne();
-		UnCrouch();
+		Crouch();
 	}
 }
 
@@ -58,9 +63,18 @@ void AMPBaseCharacter::StopSprint()
 
 void AMPBaseCharacter::Jump()
 {
-	if (!GetBaseCharacterMovementComponent()->IsProning())
+	if (GetBaseCharacterMovementComponent()->IsProning())
 	{
-		Super::Jump();
+		GetBaseCharacterMovementComponent()->StopProne();
+		UnCrouch();
+	}
+
+	else
+	{
+		if (!GetBaseCharacterMovementComponent()->IsOutOfStamina())
+		{
+			Super::Jump();
+		}
 	}
 }
 
@@ -68,7 +82,18 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	TryChangeSprintState();
+	if (!GetBaseCharacterMovementComponent()->IsSprinting())
+	{
+		RestoreStamina(DeltaTime);
+	}
+
+	if (CurrentStamina < MaxStamina)
+	{
+		FColor StaminaColor = (CurrentStamina == 0) ? FColor::Red : FColor::Yellow;
+		GEngine->AddOnScreenDebugMessage(1, 1.0f, StaminaColor, FString::Printf(TEXT("Stamina: %.2f"), CurrentStamina));
+	}
+
+	TryChangeSprintState(DeltaTime);
 }
 
 bool AMPBaseCharacter::CanSprint()
@@ -76,9 +101,23 @@ bool AMPBaseCharacter::CanSprint()
 	return true;
 }
 
-void AMPBaseCharacter::TryChangeSprintState()
+void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
-	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint())
+	if (GetBaseCharacterMovementComponent()->IsSprinting())
+	{
+		CurrentStamina -= SprintStaminaConsumptionVelocity * DeltaTime;
+		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+
+		if (CurrentStamina == 0.f)
+		{
+			GetBaseCharacterMovementComponent()->SetIsOutOfStamina(true);
+		}
+	}
+
+	if (bIsSprintRequested && 
+		!GetBaseCharacterMovementComponent()->IsSprinting() && 
+		CanSprint() && 
+		!GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
 		GetBaseCharacterMovementComponent()->StartSprint();
 		OnStartSprint();
@@ -88,5 +127,16 @@ void AMPBaseCharacter::TryChangeSprintState()
 	{
 		GetBaseCharacterMovementComponent()->StopSprint();
 		OnStopSprint();
+	}
+}
+
+void AMPBaseCharacter::RestoreStamina(float DeltaTime)
+{
+	CurrentStamina += StaminaRestoreVelocity * DeltaTime;
+	CurrentStamina = FMath::Clamp(CurrentStamina, 0.f, MaxStamina);
+
+	if (CurrentStamina > MinStaminaToSprint)
+	{
+		GetBaseCharacterMovementComponent()->SetIsOutOfStamina(false);
 	}
 }

@@ -21,6 +21,11 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = ProneSpeed;
 	}
 
+	if (bIsOutOfStamina)
+	{
+		Result = ExhaustedSpeed;
+	}
+
 	return Result;
 }
 
@@ -38,19 +43,13 @@ void UMPBaseCharacterMovementComponent::StopSprint()
 
 void UMPBaseCharacterMovementComponent::StartProne()
 {
-	if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
-	{
-		return;
-	}
-
-	float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-	float HeightDifference = CurrentCapsuleHalfHeight - ProneCapsuleHalfHeight;
-
 	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
 
-	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
+	float HeightDifference = CharacterOwner->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - ProneCapsuleHalfHeight;
+
+	if (CachedPlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
 	{
-		PlayerCharacter->OnStartProne(HeightDifference);
+		CachedPlayerCharacter->OnStartProne(HeightDifference);
 	}
 
 	bIsProning = true;
@@ -58,20 +57,28 @@ void UMPBaseCharacterMovementComponent::StartProne()
 
 void UMPBaseCharacterMovementComponent::StopProne()
 {
-	if (!CharacterOwner || !CharacterOwner->GetCapsuleComponent())
+	ACharacter* DefaultCharacter = CharacterOwner->GetClass()->GetDefaultObject<ACharacter>();
+
+	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(), 
+		DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
+
+	float HeightDifference = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - 
+		CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	if (CachedPlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
 	{
-		return;
-	}
-
-	float CurrentCapsuleHalfHeight = CharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-	float HeightDifference = StandingCapsuleHalfHeight - CurrentCapsuleHalfHeight;
-
-	CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, StandingCapsuleHalfHeight);
-
-	if (APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(CharacterOwner))
-	{
-		PlayerCharacter->OnEndProne(HeightDifference);
+		CachedPlayerCharacter->OnEndProne(HeightDifference);
 	}
 
 	bIsProning = false;
+}
+
+void UMPBaseCharacterMovementComponent::SetIsOutOfStamina(bool bIsOutOfStamina_In)
+{
+	bIsOutOfStamina = bIsOutOfStamina_In;
+
+	if (bIsOutOfStamina)
+	{
+		CharacterOwner->GetCharacterMovement()->StopMovementImmediately();
+	}
 }

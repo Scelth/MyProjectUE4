@@ -40,14 +40,27 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character | Movement")
 	void OnStopSprint();
 
-	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement")
-	//float SprintSpeed = 800.f;
-
 	virtual bool CanSprint();
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	float MaxStamina = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MinStaminaToSprint = 60.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	float StaminaRestoreVelocity = 10.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	float SprintStaminaConsumptionVelocity = 20.f;
 
 	UMPBaseCharacterMovementComponent* MPBaseCharacterMovementComponent;
 
 private:
-	void TryChangeSprintState();
 	bool bIsSprintRequested = false;
+	float CurrentStamina = MaxStamina;
+
+	void TryChangeSprintState(float DeltaTime);
+	void RestoreStamina(float DeltaTime);
 };
