@@ -30,6 +30,7 @@ private:
 
 	void ChangeCrouchState();
 	void ChangeProneState();
+	void Mantle();
 	void Jump();
 	void StartSprint();
 	void StopSprint();

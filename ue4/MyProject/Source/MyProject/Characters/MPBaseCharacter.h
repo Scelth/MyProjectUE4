@@ -6,6 +6,36 @@
 #include "GameFramework/Character.h"
 #include "MPBaseCharacter.generated.h"
 
+USTRUCT(BlueprintType)
+struct FMantlingSettings
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UAnimMontage* MantlingMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	class UCurveVector* MantlingCurve;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float AnimationCorrectionXY = 65.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float AnimationCorrectionZ = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxHeight = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MinHeight = 100.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxHeightStartTime = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MinHeightStartTime = 0.5f;
+};
+
 class UMPBaseCharacterMovementComponent;
 
 UCLASS(Abstract, NotBlueprintable)
@@ -28,10 +58,12 @@ public:
 	virtual void StopSprint();
 
 	virtual void Jump();
+	virtual bool CanJumpInternal_Implementation() const override;
+	virtual void Mantle();
 
 	virtual void Tick(float DeltaTime) override;
 
-	FORCEINLINE UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() { return MPBaseCharacterMovementComponent; }
+	FORCEINLINE UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character | Movement")
@@ -43,24 +75,39 @@ protected:
 	virtual bool CanSprint();
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
 	float MaxStamina = 100.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MinStaminaToSprint = 60.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
 	float StaminaRestoreVelocity = 10.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Stamina")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
 	float SprintStaminaConsumptionVelocity = 20.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
+	class ULedgeDetectorComponent* LedgeDetectorComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings HighMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling")
+	FMantlingSettings LowMantleSettings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float LowMantleMaxHeight = 125.f;
 
 	UMPBaseCharacterMovementComponent* MPBaseCharacterMovementComponent;
 
 private:
 	bool bIsSprintRequested = false;
-	float CurrentStamina = MaxStamina;
+
+	float CurrentStamina = 0.f;
 
 	void TryChangeSprintState(float DeltaTime);
 	void RestoreStamina(float DeltaTime);
+
+	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
 };

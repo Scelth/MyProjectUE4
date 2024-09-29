@@ -25,13 +25,14 @@ public:
 	virtual void OnStartCrouch(float HalfHeight, float ScaleHalfHeight) override;
 	virtual void OnEndCrouch(float HalfHeight, float ScaleHalfHeight) override;
 
-	virtual void OnStartProne(float HeightDifference);
-	virtual void OnEndProne(float HeightDifference);
+	virtual void ChangeProneSpringArm();
 
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 
 protected:
+	float InitialSpringArmLength;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")
 	class UCameraComponent* CameraComponent;
 

@@ -4,17 +4,22 @@
 #include "MPBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../Components/MovementComponents/MPBaseCharacterMovementComponent.h"
+#include "../Components/LedgeDetectorComponent.h"
+#include "Curves/CurveVector.h"
 
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
 	MPBaseCharacterMovementComponent = StaticCast<UMPBaseCharacterMovementComponent*>(GetCharacterMovement());
-	//CurrentStamina = MaxStamina;
+
+	CurrentStamina = MaxStamina;
+
+	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
 }
 
 void AMPBaseCharacter::ChangeCrouchState()
 {
-	if(!GetBaseCharacterMovementComponent()->IsProning())
+	if (!GetBaseCharacterMovementComponent()->IsProning())
 	{
 		if (GetCharacterMovement()->IsCrouching())
 		{
@@ -30,16 +35,14 @@ void AMPBaseCharacter::ChangeCrouchState()
 
 void AMPBaseCharacter::ChangeProneState()
 {
-	if (GetCharacterMovement()->IsCrouching())
+	if (GetCharacterMovement()->IsCrouching() && !GetBaseCharacterMovementComponent()->IsProning())
 	{
 		GetBaseCharacterMovementComponent()->StartProne();
-		UnCrouch();
 	}
 
 	else if (GetBaseCharacterMovementComponent()->IsProning())
 	{
-		GetBaseCharacterMovementComponent()->StopProne();
-		Crouch();
+		GetBaseCharacterMovementComponent()->StopProne(true);
 	}
 }
 
@@ -65,7 +68,7 @@ void AMPBaseCharacter::Jump()
 {
 	if (GetBaseCharacterMovementComponent()->IsProning())
 	{
-		GetBaseCharacterMovementComponent()->StopProne();
+		GetBaseCharacterMovementComponent()->StopProne(false);
 		UnCrouch();
 	}
 
@@ -76,6 +79,12 @@ void AMPBaseCharacter::Jump()
 			Super::Jump();
 		}
 	}
+}
+
+
+bool AMPBaseCharacter::CanJumpInternal_Implementation() const
+{
+	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
 }
 
 void AMPBaseCharacter::Tick(float DeltaTime)
@@ -96,6 +105,43 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 	TryChangeSprintState(DeltaTime);
 }
 
+
+void AMPBaseCharacter::Mantle()
+{
+	FLedgeDescription LedgeDescription;
+	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+	{
+		FMantlingMovementParameters MantlingParameters;
+		MantlingParameters.MantlingCurve = HighMantleSettings.MantlingCurve;
+		MantlingParameters.InitialLocation = GetActorLocation();
+		MantlingParameters.InitialRotation = GetActorRotation();
+		MantlingParameters.TargetLocation = LedgeDescription.Location;
+		MantlingParameters.TargetRotation = LedgeDescription.Rotation;
+
+		float MantlingHeight = (MantlingParameters.TargetLocation - MantlingParameters.InitialLocation).Z;
+
+		const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
+
+		float MinRange;
+		float MaxRange;
+
+		MantlingSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+		MantlingParameters.Duration = MaxRange - MinRange;
+		MantlingParameters.MantlingCurve = MantlingSettings.MantlingCurve;
+
+		FVector2D SourceRange(MantlingSettings.MinHeight, MantlingSettings.MaxHeight);
+		FVector2D TargetRange(MantlingSettings.MinHeightStartTime, MantlingSettings.MaxHeightStartTime);
+
+		MantlingParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
+		MantlingParameters.InitialAnimationLocation = MantlingParameters.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+
+		GetBaseCharacterMovementComponent()->StartMantle(MantlingParameters);
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
+	}
+}
+
 bool AMPBaseCharacter::CanSprint()
 {
 	return true;
@@ -114,10 +160,7 @@ void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 		}
 	}
 
-	if (bIsSprintRequested && 
-		!GetBaseCharacterMovementComponent()->IsSprinting() && 
-		CanSprint() && 
-		!GetBaseCharacterMovementComponent()->IsOutOfStamina())
+	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint() && !GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
 		GetBaseCharacterMovementComponent()->StartSprint();
 		OnStartSprint();
@@ -139,4 +182,9 @@ void AMPBaseCharacter::RestoreStamina(float DeltaTime)
 	{
 		GetBaseCharacterMovementComponent()->SetIsOutOfStamina(false);
 	}
+}
+
+const FMantlingSettings& AMPBaseCharacter::GetMantlingSettings(float LedgeHeight) const
+{
+	return LedgeHeight > LowMantleMaxHeight ? HighMantleSettings : LowMantleSettings;
 }

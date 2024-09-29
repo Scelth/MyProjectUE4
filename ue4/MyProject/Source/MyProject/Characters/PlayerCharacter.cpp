@@ -10,8 +10,8 @@
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	GetMesh()->SetVisibility(false);
-	GetMesh()->SetHiddenInGame(true);
+	//GetMesh()->SetVisibility(false);
+	//GetMesh()->SetHiddenInGame(true);
 
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -27,6 +27,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	GetCharacterMovement()->bOrientRotationToMovement = 1;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
+
+	InitialSpringArmLength = SpringArmComponent->TargetArmLength;
 }
 
 void APlayerCharacter::MoveForward(float Value)
@@ -71,14 +73,9 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
 }
 
-void APlayerCharacter::OnStartProne(float HeightDifference)
+void APlayerCharacter::ChangeProneSpringArm()
 {
-	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
-}
-
-void APlayerCharacter::OnEndProne(float HeightDifference)
-{
-	SpringArmComponent->AddLocalOffset(FVector(0.f, 0.f, HeightDifference));
+	SpringArmComponent->TargetArmLength = InitialSpringArmLength;
 }
 
 bool APlayerCharacter::CanJumpInternal_Implementation() const

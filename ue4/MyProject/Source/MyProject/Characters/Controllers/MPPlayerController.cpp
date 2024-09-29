@@ -18,6 +18,8 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &AMPPlayerController::MoveRight);
 	InputComponent->BindAxis("Turn", this, &AMPPlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &AMPPlayerController::LookUp);
+
+	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AMPPlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AMPPlayerController::Jump);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeCrouchState);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartSprint);
@@ -70,6 +72,14 @@ void AMPPlayerController::ChangeProneState()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->ChangeProneState();
+	}
+}
+
+void AMPPlayerController::Mantle()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Mantle();
 	}
 }
 
