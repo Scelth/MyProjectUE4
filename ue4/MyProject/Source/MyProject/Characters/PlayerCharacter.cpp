@@ -73,9 +73,29 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
 }
 
-void APlayerCharacter::ChangeProneSpringArm()
+void APlayerCharacter::OnStartProne()
 {
-	SpringArmComponent->TargetArmLength = InitialSpringArmLength;
+	bIsProningCamera = true;
+}
+
+void APlayerCharacter::OnEndProne()
+{
+	bIsProningCamera = false;
+}
+
+void APlayerCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (bIsProningCamera)
+	{
+		SpringArmComponent->TargetArmLength = FMath::FInterpTo(SpringArmComponent->TargetArmLength, ProneSpringArmLength, DeltaTime, CameraInterpSpeed);
+	}
+	
+	else
+	{
+		SpringArmComponent->TargetArmLength = FMath::FInterpTo(SpringArmComponent->TargetArmLength, InitialSpringArmLength, DeltaTime, CameraInterpSpeed);
+	}
 }
 
 bool APlayerCharacter::CanJumpInternal_Implementation() const

@@ -55,7 +55,7 @@ void UMPBaseCharacterMovementComponent::StartProne()
 
 	HeightDifference = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - ProneCapsuleHalfHeight;
 
-	CachedPlayerCharacter->ChangeProneSpringArm();
+	CachedPlayerCharacter->OnStartProne();
 
 	bIsProning = true;
 }
@@ -80,7 +80,7 @@ void UMPBaseCharacterMovementComponent::StopProne(bool FromCrouch)
 	HeightDifference = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() -
 		CachedPlayerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	CachedPlayerCharacter->ChangeProneSpringArm();
+	CachedPlayerCharacter->OnEndProne();
 
 	bIsProning = false;
 }
