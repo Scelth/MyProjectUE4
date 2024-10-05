@@ -4,6 +4,8 @@
 #include "MPBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "../Components/MovementComponents/MPBaseCharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "../Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
 
@@ -103,6 +105,8 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 	}
 
 	TryChangeSprintState(DeltaTime);
+
+	UpdateIKSettings(DeltaTime);
 }
 
 
@@ -145,6 +149,51 @@ void AMPBaseCharacter::Mantle()
 bool AMPBaseCharacter::CanSprint()
 {
 	return true;
+}
+
+float AMPBaseCharacter::CalculateIKParametersForSocketName(const FName& SocketName) const
+{
+	float Result = 0.0f;
+	float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	const FVector SocketLocation = GetMesh()->GetSocketLocation(SocketName);
+	const FVector TraceStart(SocketLocation.X, SocketLocation.Y, GetActorLocation().Z);
+	const FVector TraceEnd = TraceStart - (CapsuleHalfHeight + IKTraceDistance) * FVector::UpVector;
+	const FVector FootSizeBox = FVector(1.f, 15.f, 5.f);
+	
+	const ETraceTypeQuery TraceType = UEngineTypes::ConvertToTraceType(ECC_Visibility);
+
+	FHitResult HitResult;
+
+	if (UKismetSystemLibrary::BoxTraceSingle(GetWorld(), 
+		TraceStart, 
+		TraceEnd, 
+		FootSizeBox, 
+		GetMesh()->GetSocketRotation(SocketName), 
+		TraceType, 
+		true, 
+		TArray<AActor*>(), 
+		EDrawDebugTrace::None, 
+		HitResult, 
+		true))
+	{
+		float CharacterBottom = TraceStart.Z - CapsuleHalfHeight;
+		Result = CharacterBottom - HitResult.Location.Z;
+	}
+
+	return Result;
+}
+
+float AMPBaseCharacter::CalculateIKPelvisOffset()
+{
+	return  IKRightFootOffset > IKLeftFootOffset ? -IKRightFootOffset : -IKLeftFootOffset;
+}
+
+void AMPBaseCharacter::UpdateIKSettings(float DeltaSeconds)
+{
+	IKRightFootOffset = FMath::FInterpTo(IKRightFootOffset, CalculateIKParametersForSocketName(RightFootSocketName), DeltaSeconds, IKInterpSpeed);
+	IKLeftFootOffset = FMath::FInterpTo(IKLeftFootOffset, CalculateIKParametersForSocketName(LeftFootSocketName), DeltaSeconds, IKInterpSpeed);
+	IKPelvisOffset = FMath::FInterpTo(IKPelvisOffset, CalculateIKPelvisOffset(), DeltaSeconds, IKInterpSpeed);
 }
 
 void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)

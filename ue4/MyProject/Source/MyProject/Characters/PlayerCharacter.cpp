@@ -5,7 +5,6 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -19,13 +18,13 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring arm"));
 	SpringArmComponent->SetupAttachment(RootComponent);
-	SpringArmComponent->bUsePawnControlRotation = 1;
+	SpringArmComponent->bUsePawnControlRotation = true;
 
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	CameraComponent->bUsePawnControlRotation = false;
 
-	GetCharacterMovement()->bOrientRotationToMovement = 1;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 
 	InitialSpringArmLength = SpringArmComponent->TargetArmLength;
@@ -73,13 +72,41 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
 }
 
-void APlayerCharacter::OnStartProne()
+void APlayerCharacter::OnStartProne(float HeightAdjust)
 {
+	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
+
+	if (GetMesh() && DefaultChar->GetMesh())
+	{
+		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
+		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
+		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
+	}
+
+	else
+	{
+		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
+	}
+
 	bIsProningCamera = true;
 }
 
-void APlayerCharacter::OnEndProne()
+void APlayerCharacter::OnEndProne(float HeightAdjust)
 {
+	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
+
+	if (GetMesh() && DefaultChar->GetMesh())
+	{
+		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
+		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
+		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
+	}
+
+	else
+	{
+		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
+	}
+
 	bIsProningCamera = false;
 }
 
@@ -95,6 +122,10 @@ void APlayerCharacter::Tick(float DeltaTime)
 	else
 	{
 		SpringArmComponent->TargetArmLength = FMath::FInterpTo(SpringArmComponent->TargetArmLength, InitialSpringArmLength, DeltaTime, CameraInterpSpeed);
+
+		FVector TargetOffset = SpringArmComponent->TargetOffset;
+		TargetOffset.Z = FMath::FInterpTo(SpringArmComponent->TargetOffset.Z, 0.f, DeltaTime, CameraInterpSpeed);
+		SpringArmComponent->TargetOffset = TargetOffset;
 	}
 }
 

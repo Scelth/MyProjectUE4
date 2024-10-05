@@ -5,7 +5,6 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "../Characters/PlayerCharacter.h"
-#include "GameFramework/SpringArmComponent.h"
 #include "Curves/CurveVector.h"
 
 void UMPBaseCharacterMovementComponent::BeginPlay()
@@ -53,37 +52,47 @@ void UMPBaseCharacterMovementComponent::StartProne()
 {
 	CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
 
-	HeightDifference = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - ProneCapsuleHalfHeight;
+	HeightAdjust = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
-	CachedPlayerCharacter->OnStartProne();
+	CachedPlayerCharacter->OnStartProne(HeightAdjust);
 
 	bIsProning = true;
 }
 
-void UMPBaseCharacterMovementComponent::StopProne(bool FromCrouch)
+void UMPBaseCharacterMovementComponent::StopProne(bool bIsFromCrouch)
 {
 	ACharacter* DefaultCharacter = CachedPlayerCharacter->GetClass()->GetDefaultObject<ACharacter>();
 
-	if (FromCrouch)
+	if (bIsFromCrouch)
 	{
 		UCharacterMovementComponent* MovementComponent = DefaultCharacter->GetCharacterMovement();
-
-		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(MovementComponent->CrouchedHalfHeight * 0.6f, MovementComponent->CrouchedHalfHeight, true);
+		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(MovementComponent->CrouchedHalfHeight * ScaleCrouchHalfHeight,
+			MovementComponent->CrouchedHalfHeight);
 	}
 
 	else
 	{
-		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius(),
-			DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight(), true);
+		float TargetRadius = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float TargetHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+
+		float CurrentRadius = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float CurrentHeight = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+
+		float NewRadius = FMath::FInterpTo(CurrentRadius, TargetRadius, GetWorld()->DeltaTimeSeconds, InterpSpeed);
+		float NewHeight = FMath::FInterpTo(CurrentHeight, TargetHeight, GetWorld()->DeltaTimeSeconds, InterpSpeed);
+
+		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(NewRadius, NewHeight);
 	}
 
-	HeightDifference = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() -
+	HeightAdjust = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() -
 		CachedPlayerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	CachedPlayerCharacter->OnEndProne();
+	CachedPlayerCharacter->OnEndProne(HeightAdjust);
 
 	bIsProning = false;
 }
+
+
 
 bool UMPBaseCharacterMovementComponent::IsMantling() const
 {

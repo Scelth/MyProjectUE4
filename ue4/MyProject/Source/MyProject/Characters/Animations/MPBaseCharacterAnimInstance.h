@@ -37,6 +37,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsOutOfStamina = false;
 
+	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
+	FVector IKRightFootOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
+	FVector IKLeftFootOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
+	FVector IKPelvisBoneOffset = FVector::ZeroVector;
+
 private:
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
 };

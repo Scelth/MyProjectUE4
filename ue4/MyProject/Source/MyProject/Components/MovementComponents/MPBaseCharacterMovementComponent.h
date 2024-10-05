@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../LedgeDetectorComponent.h"
 #include "MPBaseCharacterMovementComponent.generated.h"
 
 struct FMantlingMovementParameters
@@ -45,7 +44,7 @@ public:
 
 	bool IsProning() const { return bIsProning; }
 	void StartProne();
-	void StopProne(bool FromCrouch);
+	void StopProne(bool bIsFromCrouch);
 
 	bool IsOutOfStamina() const { return bIsOutOfStamina; }
 	void SetIsOutOfStamina(bool bIsOutOfStamina_In) { bIsOutOfStamina = bIsOutOfStamina_In; }
@@ -78,7 +77,9 @@ private:
 	bool bIsProning = false;
 	bool bIsOutOfStamina = false;
 
-	float HeightDifference = 0.f;
+	float ScaleCrouchHalfHeight = 0.6f;
+	float HeightAdjust = 0.f;
+	float InterpSpeed = 10.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float ExhaustedSpeed = 200.f;

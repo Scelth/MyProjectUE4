@@ -28,4 +28,8 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsSprinting = CharacterMovement->IsSprinting();
 	bIsProning = CharacterMovement->IsProning();
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
+
+	IKRightFootOffset = FVector((CachedBaseCharacter->GetIKRightFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
+	IKLeftFootOffset = FVector(-(CachedBaseCharacter->GetIKLeftFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
+	IKPelvisBoneOffset = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKPelvisOffset());
 }

@@ -63,6 +63,10 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	float GetIKRightFootOffset() const { return IKRightFootOffset; }
+	float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
+	float GetIKPelvisOffset() const { return IKPelvisOffset; }
+
 	FORCEINLINE UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
 protected:
@@ -74,6 +78,17 @@ protected:
 
 	virtual bool CanSprint();
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting")
+	FName RightFootSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting")
+	FName LeftFootSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float IKTraceDistance = 50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float IKInterpSpeed = 30.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
 	float MaxStamina = 100.f;
@@ -104,8 +119,15 @@ protected:
 private:
 	bool bIsSprintRequested = false;
 
+	float IKLeftFootOffset = 0.0f;
+	float IKRightFootOffset = 0.0f;
+	float IKPelvisOffset = 0.0f;
 	float CurrentStamina = 0.f;
 
+	float CalculateIKParametersForSocketName(const FName& SocketName) const;
+	float CalculateIKPelvisOffset();
+
+	void UpdateIKSettings(float DeltaSeconds);
 	void TryChangeSprintState(float DeltaTime);
 	void RestoreStamina(float DeltaTime);
 
