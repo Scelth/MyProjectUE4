@@ -4,14 +4,14 @@
 #include "MPBaseCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
-#include "../Characters/PlayerCharacter.h"
+#include "MyProject/Characters/PlayerCharacter.h"
 #include "Curves/CurveVector.h"
 
 void UMPBaseCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
-	CachedPlayerCharacter = StaticCast<APlayerCharacter*>(GetOwner());
+	CachedPlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 }
 
 float UMPBaseCharacterMovementComponent::GetMaxSpeed() const

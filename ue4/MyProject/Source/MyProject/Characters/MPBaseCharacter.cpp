@@ -3,16 +3,16 @@
 
 #include "MPBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../Components/MovementComponents/MPBaseCharacterMovementComponent.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
-#include "../Components/LedgeDetectorComponent.h"
+#include "MyProject/Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
 
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
 {
-	MPBaseCharacterMovementComponent = StaticCast<UMPBaseCharacterMovementComponent*>(GetCharacterMovement());
+	MPBaseCharacterMovementComponent = Cast<UMPBaseCharacterMovementComponent>(GetCharacterMovement());
 
 	CurrentStamina = MaxStamina;
 

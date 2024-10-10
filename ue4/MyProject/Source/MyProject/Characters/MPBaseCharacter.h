@@ -67,7 +67,7 @@ public:
 	float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 	float GetIKPelvisOffset() const { return IKPelvisOffset; }
 
-	FORCEINLINE UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
+	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character | Movement")
@@ -114,6 +114,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Movement | Mantling", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float LowMantleMaxHeight = 125.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
 	UMPBaseCharacterMovementComponent* MPBaseCharacterMovementComponent;
 
 private:

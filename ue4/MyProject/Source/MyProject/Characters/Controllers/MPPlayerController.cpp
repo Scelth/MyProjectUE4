@@ -2,7 +2,7 @@
 
 
 #include "MPPlayerController.h"
-#include "../MPBaseCharacter.h"
+#include "MyProject/Characters/MPBaseCharacter.h"
 
 void AMPPlayerController::SetPawn(APawn* InPawn)
 {

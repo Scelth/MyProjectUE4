@@ -44,5 +44,4 @@ protected:
 
 public:	
 	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;
-
 };

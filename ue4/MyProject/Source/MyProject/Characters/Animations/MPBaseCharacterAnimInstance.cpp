@@ -2,14 +2,14 @@
 
 
 #include "MPBaseCharacterAnimInstance.h"
-#include "../MPBaseCharacter.h"
-#include "../Components/MovementComponents/MPBaseCharacterMovementComponent.h"
+#include "MyProject/Characters/MPBaseCharacter.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 
 void UMPBaseCharacterAnimInstance::NativeBeginPlay()
 {
 	Super::NativeBeginPlay();
 	checkf(TryGetPawnOwner()->IsA<AMPBaseCharacter>(), TEXT("UMPBaseCharacterAnimInstance::NativeBeginPlay() can be used only with AMPBaseCharacter"));
-	CachedBaseCharacter = StaticCast<AMPBaseCharacter*>(TryGetPawnOwner());
+	CachedBaseCharacter = Cast<AMPBaseCharacter>(TryGetPawnOwner());
 }
 
 void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)

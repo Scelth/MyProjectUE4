@@ -5,18 +5,18 @@
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
 #include "CollisionQueryParams.h"
-#include "../MPTypes.h"
+#include "MyProject/MPTypes.h"
 #include "DrawDebugHelpers.h"
-#include "../Utils/MPTraceUtils.h"
-#include "../Characters/MPBaseCharacter.h"
+#include "MyProject/Utils/MPTraceUtils.h"
+#include "MyProject/Characters/MPBaseCharacter.h"
 #include "Kismet/GameplayStatics.h"
-#include "../Subsystems/DebugSubsystem.h"
+#include "MyProject/Subsystems/DebugSubsystem.h"
 
 void ULedgeDetectorComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	checkf(GetOwner()->IsA<ACharacter>(), TEXT("ULedgeDetectorComponent::BeginPlay() only character can use ULedgeDetectorComponent"));
-	CachedCharacterOwner = StaticCast<ACharacter*>(GetOwner());
+	CachedCharacterOwner = Cast<ACharacter>(GetOwner());
 }
 
 bool ULedgeDetectorComponent::DetectLedge(OUT FLedgeDescription& LegdeDescription)
