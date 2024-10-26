@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -61,11 +59,20 @@ public:
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void Mantle();
 
+	virtual void SwimForward(float Value) {};
+	virtual void SwimRight(float Value) {};
+	virtual void SwimUp(float Value) {};
+
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
 	float GetIKRightFootOffset() const { return IKRightFootOffset; }
 	float GetIKLeftFootOffset() const { return IKLeftFootOffset; }
 	float GetIKPelvisOffset() const { return IKPelvisOffset; }
+
+	virtual void Falling() override;
+	virtual void Landed(const FHitResult& Hit) override;
+	virtual void NotifyJumpApex() override;
 
 	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
@@ -78,16 +85,16 @@ protected:
 
 	virtual bool CanSprint();
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config | IK Setting")
 	FName RightFootSocketName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config | IK Setting")
 	FName LeftFootSocketName;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config | IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float IKTraceDistance = 50.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config|IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config | IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float IKInterpSpeed = 30.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
@@ -117,6 +124,18 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
 	UMPBaseCharacterMovementComponent* MPBaseCharacterMovementComponent;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	class UMPCharacterAttributesComponent* CharacterAttributesComponent;
+
+	virtual void OnDeath();
+
+	// Damage depending from fall height in meters
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Attributes")
+	class UCurveFloat* FallDamageCurve;
+
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
+	//class UAnimMontage* OnDeathAnimMontage;
+
 private:
 	bool bIsSprintRequested = false;
 
@@ -124,6 +143,7 @@ private:
 	float IKRightFootOffset = 0.0f;
 	float IKPelvisOffset = 0.0f;
 	float CurrentStamina = 0.f;
+	float CrouchDifference = 25.f;
 
 	float CalculateIKParametersForSocketName(const FName& SocketName) const;
 	float CalculateIKPelvisOffset();
@@ -132,5 +152,9 @@ private:
 	void TryChangeSprintState(float DeltaTime);
 	void RestoreStamina(float DeltaTime);
 
+	void EnableRagdoll();
+
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;
+
+	FVector CurrentFallApex;
 };

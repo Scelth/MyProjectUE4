@@ -28,6 +28,10 @@ public:
 	virtual void OnStartProne(float HeightAdjust);
 	virtual void OnEndProne(float HeightAdjust);
 
+	virtual void SwimForward(float Value) override;
+	virtual void SwimRight(float Value) override;
+	virtual void SwimUp(float Value) override;
+
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void OnJumped_Implementation() override;
 

@@ -1,14 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "MPBaseCharacterAnimInstance.generated.h"
 
-/**
- * 
- */
 UCLASS()
 class MYPROJECT_API UMPBaseCharacterAnimInstance : public UAnimInstance
 {
@@ -36,6 +31,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsOutOfStamina = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsSwimming = false;
 
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKRightFootOffset = FVector::ZeroVector;

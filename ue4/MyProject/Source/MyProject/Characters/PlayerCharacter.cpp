@@ -1,10 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PlayerCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 
 APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -32,7 +30,7 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 
 void APlayerCharacter::MoveForward(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.f, GetControlRotation().Yaw, 0.f);
 		FVector ForwardVector = YawRotator.RotateVector(FVector::ForwardVector);
@@ -42,7 +40,7 @@ void APlayerCharacter::MoveForward(float Value)
 
 void APlayerCharacter::MoveRight(float Value)
 {
-	if (!FMath::IsNearlyZero(Value, 1e-6f))
+	if ((GetCharacterMovement()->IsMovingOnGround() || GetCharacterMovement()->IsFalling()) && !FMath::IsNearlyZero(Value, 1e-6f))
 	{
 		FRotator YawRotator(0.f, GetControlRotation().Yaw, 0.f);
 		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
@@ -110,6 +108,34 @@ void APlayerCharacter::OnEndProne(float HeightAdjust)
 	bIsProningCamera = false;
 }
 
+void APlayerCharacter::SwimForward(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator PitchYawRotator(GetControlRotation().Pitch, GetControlRotation().Yaw, 0.f);
+		FVector ForwardVector = PitchYawRotator.RotateVector(FVector::ForwardVector);
+		AddMovementInput(ForwardVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimRight(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		FRotator YawRotator(0.f, GetControlRotation().Yaw, 0.f);
+		FVector RightVector = YawRotator.RotateVector(FVector::RightVector);
+		AddMovementInput(RightVector, Value);
+	}
+}
+
+void APlayerCharacter::SwimUp(float Value)
+{
+	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
+	{
+		AddMovementInput(FVector::UpVector, Value);
+	}
+}
+
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -131,6 +157,11 @@ void APlayerCharacter::Tick(float DeltaTime)
 
 bool APlayerCharacter::CanJumpInternal_Implementation() const
 {
+	if (GetBaseCharacterMovementComponent()->IsMantling())
+	{
+		return false;
+	}
+
 	return bIsCrouched || Super::CanJumpInternal_Implementation();
 }
 
@@ -140,4 +171,6 @@ void APlayerCharacter::OnJumped_Implementation()
 	{
 		UnCrouch();
 	}
+
+	Super::OnJumped_Implementation();
 }

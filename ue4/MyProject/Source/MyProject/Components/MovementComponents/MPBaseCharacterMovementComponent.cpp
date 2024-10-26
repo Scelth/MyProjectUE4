@@ -11,7 +11,7 @@ void UMPBaseCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
-	CachedPlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	CachedPlayerCharacter = StaticCast<APlayerCharacter*>(GetOwner());
 }
 
 float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
@@ -92,23 +92,29 @@ void UMPBaseCharacterMovementComponent::StopProne(bool bIsFromCrouch)
 	bIsProning = false;
 }
 
-
-
 bool UMPBaseCharacterMovementComponent::IsMantling() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Mantling;
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Mantling || bIsMantling;
 }
 
 void UMPBaseCharacterMovementComponent::StartMantle(const FMantlingMovementParameters& MantlingParameters)
 {
+	if (CachedPlayerCharacter.IsValid() && CachedPlayerCharacter->bIsCrouched)
+	{
+		CachedPlayerCharacter->UnCrouch();
+	}
+
 	CurrentMantlingParameters = MantlingParameters;
 
 	SetMovementMode(EMovementMode::MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Mantling);
+
+	bIsMantling = true;
 }
 
 void UMPBaseCharacterMovementComponent::EndMantle()
 {
 	SetMovementMode(MOVE_Walking);
+	bIsMantling = false;
 }
 
 void UMPBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterations)
@@ -149,21 +155,36 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 {
 	Super::OnMovementModeChanged(PreviousMovementMode, PreviousCustomMode);
 
+	if (MovementMode == MOVE_Swimming)
+	{
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(SwimmingCapsuleRadius, SwimmingCapsuleHalfHeight);
+	}
+
+	else if (PreviousMovementMode == MOVE_Swimming)
+	{
+		ACharacter* DefaultCharacter = CachedPlayerCharacter->GetClass()->GetDefaultObject<ACharacter>();
+
+		float DefaultRadius = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float DefaultHalfHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+
+		CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(DefaultRadius, DefaultHalfHeight);
+	}
+
 	if (MovementMode == MOVE_Custom)
 	{
 		switch (CustomMovementMode)
 		{
-		case (uint8)ECustomMovementMode::CMOVE_Mantling:
-		{
-			GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UMPBaseCharacterMovementComponent::EndMantle, CurrentMantlingParameters.Duration, false);
+			case (uint8)ECustomMovementMode::CMOVE_Mantling:
+			{
+				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UMPBaseCharacterMovementComponent::EndMantle, CurrentMantlingParameters.Duration, false);
 
-			break;
-		}
+				break;
+			}
 
-		default:
-		{
-			break;
-		}
+			default:
+			{
+				break;
+			}
 		}
 	}
 }

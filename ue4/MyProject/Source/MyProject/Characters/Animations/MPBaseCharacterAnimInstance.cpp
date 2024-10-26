@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MPBaseCharacterAnimInstance.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
 #include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
@@ -28,6 +25,7 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsSprinting = CharacterMovement->IsSprinting();
 	bIsProning = CharacterMovement->IsProning();
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
+	bIsSwimming = CharacterMovement->IsSwimming();
 
 	IKRightFootOffset = FVector((CachedBaseCharacter->GetIKRightFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
 	IKLeftFootOffset = FVector(-(CachedBaseCharacter->GetIKLeftFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);

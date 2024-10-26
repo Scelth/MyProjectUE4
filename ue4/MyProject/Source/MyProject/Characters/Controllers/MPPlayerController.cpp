@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MPPlayerController.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
 
@@ -18,6 +15,9 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("MoveRight", this, &AMPPlayerController::MoveRight);
 	InputComponent->BindAxis("Turn", this, &AMPPlayerController::Turn);
 	InputComponent->BindAxis("LookUp", this, &AMPPlayerController::LookUp);
+	InputComponent->BindAxis("SwimForward", this, &AMPPlayerController::SwimForward);
+	InputComponent->BindAxis("SwimRight", this, &AMPPlayerController::SwimRight);
+	InputComponent->BindAxis("SwimUp", this, &AMPPlayerController::SwimUp);
 
 	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AMPPlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AMPPlayerController::Jump);
@@ -56,6 +56,30 @@ void AMPPlayerController::LookUp(float Value)
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->LookUp(Value);
+	}
+}
+
+void AMPPlayerController::SwimForward(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimForward(Value);
+	}
+}
+
+void AMPPlayerController::SwimRight(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimRight(Value);
+	}
+}
+
+void AMPPlayerController::SwimUp(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->SwimUp(Value);
 	}
 }
 

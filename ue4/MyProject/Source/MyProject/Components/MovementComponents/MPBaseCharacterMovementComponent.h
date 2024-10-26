@@ -38,7 +38,7 @@ class MYPROJECT_API UMPBaseCharacterMovementComponent : public UCharacterMovemen
 public:
 	virtual float GetMaxSpeed() const override;
 
-	bool IsSprinting() { return bIsSprinting; }
+	bool IsSprinting() const { return bIsSprinting; }
 	void StartSprint();
 	void StopSprint();
 
@@ -60,22 +60,29 @@ protected:
 
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Sprint", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Sprint", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float SprintSpeed = 1200.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneCapsuleRadius = 40.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneCapsuleHalfHeight = 30.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement: Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneSpeed = 150.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = "0", UIMin = "0"))
+	float SwimmingCapsuleRadius = 60.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = "0", UIMin = "0"))
+	float SwimmingCapsuleHalfHeight = 60.f;
 
 private:
 	bool bIsSprinting = false;
 	bool bIsProning = false;
 	bool bIsOutOfStamina = false;
+	bool bIsMantling = false;
 
 	float ScaleCrouchHalfHeight = 0.6f;
 	float HeightAdjust = 0.f;

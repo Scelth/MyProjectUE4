@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MPBaseCharacter.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
@@ -8,6 +5,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "MyProject/Components/LedgeDetectorComponent.h"
 #include "Curves/CurveVector.h"
+#include "MyProject/Components/CharacterComponents/MPCharacterAttributesComponent.h"
+#include <MyProject/MPTypes.h>
 
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UMPBaseCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -17,6 +16,8 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	CurrentStamina = MaxStamina;
 
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
+
+	CharacterAttributesComponent = CreateDefaultSubobject<UMPCharacterAttributesComponent>(TEXT("CharacterAttributes"));
 }
 
 void AMPBaseCharacter::ChangeCrouchState()
@@ -89,6 +90,13 @@ bool AMPBaseCharacter::CanJumpInternal_Implementation() const
 	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
 }
 
+void AMPBaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
+}
+
 void AMPBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -109,46 +117,89 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 	UpdateIKSettings(DeltaTime);
 }
 
+void AMPBaseCharacter::Falling()
+{
+	GetBaseCharacterMovementComponent()->bNotifyApex = true;
+}
+
+void AMPBaseCharacter::Landed(const FHitResult& Hit)
+{
+	Super::Landed(Hit);
+	float FallHeight = (CurrentFallApex - GetActorLocation()).Z * 0.01f;
+
+	if (IsValid(FallDamageCurve))
+	{
+		float DamageAmount = FallDamageCurve->GetFloatValue(FallHeight);
+		TakeDamage(DamageAmount, FDamageEvent(), GetController(), Hit.GetActor());
+	}
+}
+
+void AMPBaseCharacter::NotifyJumpApex()
+{
+	Super::NotifyJumpApex();
+	CurrentFallApex = GetActorLocation();
+}
 
 void AMPBaseCharacter::Mantle()
 {
-	FLedgeDescription LedgeDescription;
-	if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+	if (!GetBaseCharacterMovementComponent()->IsMantling())
 	{
-		FMantlingMovementParameters MantlingParameters;
-		MantlingParameters.MantlingCurve = HighMantleSettings.MantlingCurve;
-		MantlingParameters.InitialLocation = GetActorLocation();
-		MantlingParameters.InitialRotation = GetActorRotation();
-		MantlingParameters.TargetLocation = LedgeDescription.Location;
-		MantlingParameters.TargetRotation = LedgeDescription.Rotation;
+		FLedgeDescription LedgeDescription;
+		if (LedgeDetectorComponent->DetectLedge(LedgeDescription))
+		{
+			FMantlingMovementParameters MantlingParameters;
 
-		float MantlingHeight = (MantlingParameters.TargetLocation - MantlingParameters.InitialLocation).Z;
+			MantlingParameters.MantlingCurve = HighMantleSettings.MantlingCurve;
+			MantlingParameters.InitialLocation = GetActorLocation();
+			MantlingParameters.InitialRotation = GetActorRotation();
+			MantlingParameters.TargetRotation = LedgeDescription.Rotation;
 
-		const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
+			if (GetCharacterMovement()->IsCrouching())
+			{
+				MantlingParameters.TargetLocation = FVector(LedgeDescription.Location.X, LedgeDescription.Location.Y, LedgeDescription.Location.Z + CrouchDifference);
+			}
 
-		float MinRange;
-		float MaxRange;
+			else
+			{
+				MantlingParameters.TargetLocation = LedgeDescription.Location;
+			}
 
-		MantlingSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
-		MantlingParameters.Duration = MaxRange - MinRange;
-		MantlingParameters.MantlingCurve = MantlingSettings.MantlingCurve;
+			float MantlingHeight = (MantlingParameters.TargetLocation - MantlingParameters.InitialLocation).Z;
 
-		FVector2D SourceRange(MantlingSettings.MinHeight, MantlingSettings.MaxHeight);
-		FVector2D TargetRange(MantlingSettings.MinHeightStartTime, MantlingSettings.MaxHeightStartTime);
+			const FMantlingSettings& MantlingSettings = GetMantlingSettings(MantlingHeight);
 
-		MantlingParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
-		MantlingParameters.InitialAnimationLocation = MantlingParameters.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+			float MinRange;
+			float MaxRange;
 
-		GetBaseCharacterMovementComponent()->StartMantle(MantlingParameters);
+			MantlingSettings.MantlingCurve->GetTimeRange(MinRange, MaxRange);
+			MantlingParameters.Duration = MaxRange - MinRange;
+			MantlingParameters.MantlingCurve = MantlingSettings.MantlingCurve;
 
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
+			FVector2D SourceRange(MantlingSettings.MinHeight, MantlingSettings.MaxHeight);
+			FVector2D TargetRange(MantlingSettings.MinHeightStartTime, MantlingSettings.MaxHeightStartTime);
+
+			MantlingParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
+			MantlingParameters.InitialAnimationLocation = MantlingParameters.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
+
+			GetBaseCharacterMovementComponent()->StartMantle(MantlingParameters);
+
+			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+			AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
+		}
 	}
 }
 
 bool AMPBaseCharacter::CanSprint()
 {
 	return true;
+}
+
+void AMPBaseCharacter::OnDeath()
+{
+	//PlayAnimMontage(OnDeathAnimMontage);
+	GetCharacterMovement()->DisableMovement();
+
+	EnableRagdoll();
 }
 
 float AMPBaseCharacter::CalculateIKParametersForSocketName(const FName& SocketName) const
@@ -201,7 +252,7 @@ void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 	if (GetBaseCharacterMovementComponent()->IsSprinting())
 	{
 		CurrentStamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.0f, MaxStamina);
+		CurrentStamina = FMath::Clamp(CurrentStamina, 0.f, MaxStamina);
 
 		if (CurrentStamina == 0.f)
 		{
@@ -231,6 +282,12 @@ void AMPBaseCharacter::RestoreStamina(float DeltaTime)
 	{
 		GetBaseCharacterMovementComponent()->SetIsOutOfStamina(false);
 	}
+}
+
+void AMPBaseCharacter::EnableRagdoll()
+{
+	GetMesh()->SetCollisionProfileName(CollisionProfileRagdoll);
+	GetMesh()->SetSimulatePhysics(true);
 }
 
 const FMantlingSettings& AMPBaseCharacter::GetMantlingSettings(float LedgeHeight) const
