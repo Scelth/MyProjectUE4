@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MPBaseCharacterMovementComponent.h"
 #include "GameFramework/Character.h"
 #include "Components/CapsuleComponent.h"
@@ -39,13 +36,13 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 void UMPBaseCharacterMovementComponent::StartSprint()
 {
 	bIsSprinting = true;
-	bForceMaxAccel = true; //1
+	bForceMaxAccel = true;
 }
 
 void UMPBaseCharacterMovementComponent::StopSprint()
 {
 	bIsSprinting = false;
-	bForceMaxAccel = false; //0
+	bForceMaxAccel = false;
 }
 
 void UMPBaseCharacterMovementComponent::StartProne()

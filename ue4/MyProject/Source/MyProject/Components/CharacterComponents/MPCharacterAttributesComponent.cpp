@@ -5,11 +5,11 @@
 #include <Kismet/GameplayStatics.h>
 #include <DrawDebugHelpers.h>
 #include "Components/CapsuleComponent.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 
 UMPCharacterAttributesComponent::UMPCharacterAttributesComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
-
 }
 
 void UMPCharacterAttributesComponent::BeginPlay()
@@ -18,6 +18,7 @@ void UMPCharacterAttributesComponent::BeginPlay()
 	CachedBaseCharacterOwner = Cast<AMPBaseCharacter>(GetOwner());
 	
 	Health = MaxHealth;
+	Stamina = MaxStamina;
 
 	CachedBaseCharacterOwner->OnTakeAnyDamage.AddDynamic(this, &UMPCharacterAttributesComponent::OnTakeAnyDamage);
 }
@@ -32,8 +33,11 @@ void UMPCharacterAttributesComponent::DebugDrawAttributes()
 		return;
 	}
 
-	FVector TextLocation = CachedBaseCharacterOwner->GetActorLocation() + (CachedBaseCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()) * FVector::UpVector;
-	DrawDebugString(GetWorld(), TextLocation, FString::Printf(TEXT("Health: %.f"), Health), nullptr, FColor::Red, 0.f, true);
+	FVector HealthTextLocation = CachedBaseCharacterOwner->GetActorLocation() + (CachedBaseCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight() + 5.f) * FVector::UpVector;
+	DrawDebugString(GetWorld(), HealthTextLocation, FString::Printf(TEXT("Health: %.f"), Health), nullptr, FColor::Red, 0.f, true);
+	
+	FVector StaminaTextLocation = CachedBaseCharacterOwner->GetActorLocation() + (CachedBaseCharacterOwner->GetCapsuleComponent()->GetScaledCapsuleHalfHeight()) * FVector::UpVector;
+	DrawDebugString(GetWorld(), StaminaTextLocation, FString::Printf(TEXT("Stamina: %.f"), Stamina), nullptr, FColor::Green, 0.f, true);
 }
 #endif
 
@@ -57,12 +61,44 @@ void UMPCharacterAttributesComponent::OnTakeAnyDamage(AActor* DamageActor, float
 	}
 }
 
+void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
+{
+	if (Stamina >= MinStaminaToSprint && OnOutOfStaminaEvent.IsBound())
+	{
+		OnOutOfStaminaEvent.Broadcast(false);
+	}
+
+	if (!CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting())
+	{
+		Stamina += StaminaRestoreVelocity * DeltaTime;
+
+		if (Stamina >= MaxStamina && OnOutOfStaminaEvent.IsBound())
+		{
+			Stamina = MaxStamina;
+			bIsStaminaDepleted = false;
+			OnOutOfStaminaEvent.Broadcast(false);
+		}
+	}
+
+	else if (CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting())
+	{
+		Stamina -= SprintStaminaConsumptionVelocity * DeltaTime;
+
+		if (Stamina <= 0.f && OnOutOfStaminaEvent.IsBound())
+		{
+			Stamina = 0.f;
+			bIsStaminaDepleted = true;
+			OnOutOfStaminaEvent.Broadcast(true);
+		}
+	}
+}
+
 void UMPCharacterAttributesComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	UpdateStaminaValue(DeltaTime);
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	DebugDrawAttributes();
 #endif
 }
-

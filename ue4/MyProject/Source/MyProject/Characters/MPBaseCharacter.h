@@ -97,18 +97,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Config | IK Setting", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float IKInterpSpeed = 30.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
-	float MaxStamina = 100.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina", meta = (ClampMin = 0.f, UIMin = 0.f))
-	float MinStaminaToSprint = 60.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
-	float StaminaRestoreVelocity = 10.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Movement | Stamina")
-	float SprintStaminaConsumptionVelocity = 20.f;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Movement")
 	class ULedgeDetectorComponent* LedgeDetectorComponent;
 
@@ -128,21 +116,18 @@ protected:
 	class UMPCharacterAttributesComponent* CharacterAttributesComponent;
 
 	virtual void OnDeath();
+	virtual void HandleStaminaEvent(bool bIsOutOfStamina);
 
 	// Damage depending from fall height in meters
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Attributes")
 	class UCurveFloat* FallDamageCurve;
 
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Animations")
-	//class UAnimMontage* OnDeathAnimMontage;
-
 private:
 	bool bIsSprintRequested = false;
 
-	float IKLeftFootOffset = 0.0f;
-	float IKRightFootOffset = 0.0f;
-	float IKPelvisOffset = 0.0f;
-	float CurrentStamina = 0.f;
+	float IKLeftFootOffset = 0.f;
+	float IKRightFootOffset = 0.f;
+	float IKPelvisOffset = 0.f;
 	float CrouchDifference = 25.f;
 
 	float CalculateIKParametersForSocketName(const FName& SocketName) const;
@@ -150,7 +135,6 @@ private:
 
 	void UpdateIKSettings(float DeltaSeconds);
 	void TryChangeSprintState(float DeltaTime);
-	void RestoreStamina(float DeltaTime);
 
 	void EnableRagdoll();
 

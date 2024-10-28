@@ -13,10 +13,7 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 {
 	MPBaseCharacterMovementComponent = Cast<UMPBaseCharacterMovementComponent>(GetCharacterMovement());
 
-	CurrentStamina = MaxStamina;
-
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
-
 	CharacterAttributesComponent = CreateDefaultSubobject<UMPCharacterAttributesComponent>(TEXT("CharacterAttributes"));
 }
 
@@ -84,7 +81,6 @@ void AMPBaseCharacter::Jump()
 	}
 }
 
-
 bool AMPBaseCharacter::CanJumpInternal_Implementation() const
 {
 	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
@@ -95,22 +91,12 @@ void AMPBaseCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
+	CharacterAttributesComponent->OnOutOfStaminaEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
 }
 
 void AMPBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (!GetBaseCharacterMovementComponent()->IsSprinting())
-	{
-		RestoreStamina(DeltaTime);
-	}
-
-	if (CurrentStamina < MaxStamina)
-	{
-		FColor StaminaColor = (CurrentStamina == 0) ? FColor::Red : FColor::Yellow;
-		GEngine->AddOnScreenDebugMessage(1, 1.0f, StaminaColor, FString::Printf(TEXT("Stamina: %.2f"), CurrentStamina));
-	}
 
 	TryChangeSprintState(DeltaTime);
 
@@ -196,10 +182,14 @@ bool AMPBaseCharacter::CanSprint()
 
 void AMPBaseCharacter::OnDeath()
 {
-	//PlayAnimMontage(OnDeathAnimMontage);
 	GetCharacterMovement()->DisableMovement();
 
 	EnableRagdoll();
+}
+
+void AMPBaseCharacter::HandleStaminaEvent(bool bIsOutOfStamina)
+{
+	GetBaseCharacterMovementComponent()->SetIsOutOfStamina(bIsOutOfStamina);
 }
 
 float AMPBaseCharacter::CalculateIKParametersForSocketName(const FName& SocketName) const
@@ -249,17 +239,6 @@ void AMPBaseCharacter::UpdateIKSettings(float DeltaSeconds)
 
 void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
-	if (GetBaseCharacterMovementComponent()->IsSprinting())
-	{
-		CurrentStamina -= SprintStaminaConsumptionVelocity * DeltaTime;
-		CurrentStamina = FMath::Clamp(CurrentStamina, 0.f, MaxStamina);
-
-		if (CurrentStamina == 0.f)
-		{
-			GetBaseCharacterMovementComponent()->SetIsOutOfStamina(true);
-		}
-	}
-
 	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint() && !GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
 		GetBaseCharacterMovementComponent()->StartSprint();
@@ -270,17 +249,6 @@ void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 	{
 		GetBaseCharacterMovementComponent()->StopSprint();
 		OnStopSprint();
-	}
-}
-
-void AMPBaseCharacter::RestoreStamina(float DeltaTime)
-{
-	CurrentStamina += StaminaRestoreVelocity * DeltaTime;
-	CurrentStamina = FMath::Clamp(CurrentStamina, 0.f, MaxStamina);
-
-	if (CurrentStamina > MinStaminaToSprint)
-	{
-		GetBaseCharacterMovementComponent()->SetIsOutOfStamina(false);
 	}
 }
 
