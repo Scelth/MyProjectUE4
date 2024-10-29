@@ -7,4 +7,6 @@ const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
 
 const FName PawnCollisionProfile = FName("Pawn");
 
+const FName PawnHeadBone = FName("head");
+
 const FName CollisionProfileRagdoll = FName("Ragdoll");

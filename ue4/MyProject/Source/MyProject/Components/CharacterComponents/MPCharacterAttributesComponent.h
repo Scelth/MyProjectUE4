@@ -40,10 +40,26 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Stamina", meta = (UIMin = 0.f))
 	float SprintStaminaConsumptionVelocity = 20.f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Oxygen", meta = (UIMin = 0.f))
+	float MaxOxygen = 50.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Oxygen", meta = (UIMin = 0.f))
+	float OxygenRestoreVelocity = 15.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Oxygen", meta = (UIMin = 0.f))
+	float SwimOxygenConsumptionVelocity = 2.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Oxygen", meta = (UIMin = 0.f))
+	float OxygenOutDamage = 5.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Oxygen", meta = (UIMin = 0.f))
+	float OxygenDamageInterval = 2.f;
+
 private:
 	float Health = 0.f;
 	float Stamina = 0.f;
-	bool bIsStaminaDepleted = false;
+	float Oxygen = 0.f;
+	float LastOxygenDamageTime = 0.f;
 
 #if UE_BUILD_DEBUG || UE_BUILD_DEVELOPMENT
 	void DebugDrawAttributes();
@@ -54,6 +70,11 @@ private:
 
 	UFUNCTION()
 	void UpdateStaminaValue(float DeltaTime);
+
+	UFUNCTION()
+	void UpdateOxygenValue(float DeltaTime);
+
+	bool IsSwimmingUnderWater() const;
 
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacterOwner;
 };
