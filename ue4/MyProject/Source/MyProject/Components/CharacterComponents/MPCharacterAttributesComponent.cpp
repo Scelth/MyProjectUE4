@@ -93,7 +93,7 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 
 void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 {
-	if (!IsSwimmingUnderWater())
+	if (!IsSwimmingUnderWater() && IsAlive())
 	{
 		Oxygen += OxygenRestoreVelocity * DeltaTime;
 
@@ -103,7 +103,7 @@ void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 		}
 	}
 
-	else if (IsSwimmingUnderWater())
+	else if (IsSwimmingUnderWater() && IsAlive())
 	{
 		Oxygen -= SwimOxygenConsumptionVelocity * DeltaTime;
 
