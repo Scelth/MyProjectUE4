@@ -25,16 +25,21 @@ void UWeaponBarellComponent::Shot(FVector ShotStart, FVector ShotDirection, ACon
 	if (GetWorld()->LineTraceSingleByChannel(ShotResult, ShotStart, ShotEnd, ECC_Bullet))
 	{
 		ShotEnd = ShotResult.ImpactPoint;
+
 		if (bIsDebugEnabled)
 		{
-			DrawDebugSphere(GetWorld(), ShotEnd, 10.0f, 24, FColor::Red, false, 1.0f);
+			DrawDebugSphere(GetWorld(), ShotEnd, 10.f, 24, FColor::Red, false, 1.f);
 		}
 
 		AActor* HitActor = ShotResult.GetActor();
 
 		if (IsValid(HitActor))
 		{
-			HitActor->TakeDamage(DamageAmount, FDamageEvent{}, Controller, GetOwner());
+			float Distance = FVector::Distance(ShotStart, ShotEnd);
+			float DamageFactor = FalloffDiagram ? FalloffDiagram->GetFloatValue(Distance) : DamageMultiplier;
+			float FinalDamage = DamageAmount * DamageFactor;
+
+			HitActor->TakeDamage(FinalDamage, FDamageEvent{}, Controller, GetOwner());
 		}
 	}
 	

@@ -26,4 +26,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | VFX")
 	UNiagaraSystem* TraceFX;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Damage")
+	UCurveFloat* FalloffDiagram;
+
+	float DamageMultiplier = 1.f;
 };
