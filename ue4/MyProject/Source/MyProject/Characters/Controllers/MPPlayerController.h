@@ -32,4 +32,5 @@ private:
 	void Jump();
 	void StartSprint();
 	void StopSprint();
+	void Fire();
 };

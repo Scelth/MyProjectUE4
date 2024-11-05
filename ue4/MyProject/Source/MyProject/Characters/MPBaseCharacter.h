@@ -35,6 +35,7 @@ struct FMantlingSettings
 };
 
 class UMPBaseCharacterMovementComponent;
+class UCharacterEquipmentComponent;
 
 UCLASS(Abstract, NotBlueprintable)
 class MYPROJECT_API AMPBaseCharacter : public ACharacter
@@ -59,6 +60,8 @@ public:
 	virtual bool CanJumpInternal_Implementation() const override;
 	virtual void Mantle();
 
+	void Fire();
+
 	virtual void SwimForward(float Value) {};
 	virtual void SwimRight(float Value) {};
 	virtual void SwimUp(float Value) {};
@@ -73,6 +76,8 @@ public:
 	virtual void Falling() override;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void NotifyJumpApex() override;
+
+	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const;
 
 	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
@@ -121,6 +126,9 @@ protected:
 	// Damage depending from fall height in meters
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Attributes")
 	class UCurveFloat* FallDamageCurve;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	class UCharacterEquipmentComponent* CharacterEquipmentComponent;
 
 private:
 	bool bIsSprintRequested = false;

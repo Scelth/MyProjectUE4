@@ -25,6 +25,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AMPPlayerController::StopSprint);
 	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeProneState);
+	InputComponent->BindAction("Attack", EInputEvent::IE_Pressed, this, &AMPPlayerController::Fire);
 }
 
 void AMPPlayerController::MoveForward(float Value)
@@ -128,5 +129,13 @@ void AMPPlayerController::StopSprint()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopSprint();
+	}
+}
+
+void AMPPlayerController::Fire()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Fire();
 	}
 }

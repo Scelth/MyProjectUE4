@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "MyProject/MPTypes.h"
 #include "MPBaseCharacterAnimInstance.generated.h"
 
 UCLASS()
@@ -15,7 +16,13 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	FRotator AimRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation", meta = (UIMin = 0.f, UIMax = 500.f))
 	float Speed = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation", meta = (UIMin = -180.f, UIMax = 180.f))
+	float Direction = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsFalling = false;
@@ -35,6 +42,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsSwimming = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsStrafing = false;
+
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKRightFootOffset = FVector::ZeroVector;
 
@@ -43,6 +53,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKPelvisBoneOffset = FVector::ZeroVector;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	EEquipableItemType CurrentEquippedItem = EEquipableItemType::None;
 
 private:
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;

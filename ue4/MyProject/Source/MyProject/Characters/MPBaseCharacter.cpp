@@ -1,11 +1,12 @@
 #include "MPBaseCharacter.h"
-#include "GameFramework/CharacterMovementComponent.h"
-#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "MyProject/Components/LedgeDetectorComponent.h"
-#include "Curves/CurveVector.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 #include "MyProject/Components/CharacterComponents/MPCharacterAttributesComponent.h"
+#include "MyProject/Components/CharacterComponents/CharacterEquipmentComponent.h"
+#include "Curves/CurveVector.h"
+#include "Components/CapsuleComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include <MyProject/MPTypes.h>
 
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -15,6 +16,7 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
 	CharacterAttributesComponent = CreateDefaultSubobject<UMPCharacterAttributesComponent>(TEXT("CharacterAttributes"));
+	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
 }
 
 void AMPBaseCharacter::ChangeCrouchState()
@@ -126,6 +128,11 @@ void AMPBaseCharacter::NotifyJumpApex()
 	CurrentFallApex = GetActorLocation();
 }
 
+const UCharacterEquipmentComponent* AMPBaseCharacter::GetCharacterEquipmentComponent() const
+{
+	return CharacterEquipmentComponent;
+}
+
 void AMPBaseCharacter::Mantle()
 {
 	if (!GetBaseCharacterMovementComponent()->IsMantling())
@@ -173,6 +180,11 @@ void AMPBaseCharacter::Mantle()
 			AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
 		}
 	}
+}
+
+void AMPBaseCharacter::Fire()
+{
+	CharacterEquipmentComponent->Fire();
 }
 
 bool AMPBaseCharacter::CanSprint()

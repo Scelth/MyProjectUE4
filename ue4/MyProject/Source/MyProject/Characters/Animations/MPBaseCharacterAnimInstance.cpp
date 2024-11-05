@@ -1,6 +1,7 @@
 #include "MPBaseCharacterAnimInstance.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
 #include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
+#include "MyProject/Components/CharacterComponents/CharacterEquipmentComponent.h"
 
 void UMPBaseCharacterAnimInstance::NativeBeginPlay()
 {
@@ -19,15 +20,24 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	UMPBaseCharacterMovementComponent* CharacterMovement = CachedBaseCharacter->GetBaseCharacterMovementComponent();
+	
 	Speed = CharacterMovement->Velocity.Size();
+	Direction = CalculateDirection(CharacterMovement->Velocity, CachedBaseCharacter->GetActorRotation());
+
 	bIsFalling = CharacterMovement->IsFalling();
 	bIsCrouching = CharacterMovement->IsCrouching();
 	bIsSprinting = CharacterMovement->IsSprinting();
 	bIsProning = CharacterMovement->IsProning();
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
 	bIsSwimming = CharacterMovement->IsSwimming();
+	bIsStrafing = !CharacterMovement->bOrientRotationToMovement;
 
 	IKRightFootOffset = FVector((CachedBaseCharacter->GetIKRightFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
 	IKLeftFootOffset = FVector(-(CachedBaseCharacter->GetIKLeftFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
 	IKPelvisBoneOffset = FVector(0.0f, 0.0f, CachedBaseCharacter->GetIKPelvisOffset());
+
+	AimRotation = CachedBaseCharacter->GetBaseAimRotation();
+
+	const UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent();
+	CurrentEquippedItem = CharacterEquipment->GetCurrentEquippedItemType();
 }
