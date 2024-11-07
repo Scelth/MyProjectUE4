@@ -61,6 +61,7 @@ protected:
 private:
 	void UpdateSpringArm(float DeltaTime);
 	
+	float CameraBaseSpeedMultiplier = 1.f;
 	float DefaultFOV = 90.f; 
 	float AimingFOV = 60.f; 
 

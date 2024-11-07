@@ -60,14 +60,14 @@ void APlayerCharacter::LookUp(float Value)
 void APlayerCharacter::TurnAtRate(float Value)
 {
 	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-	float TurnModifier = IsValid(CurrentRangeWeapon) && IsAiming() ? CurrentRangeWeapon->GetAimTurnModifier() : 1.f;
+	float TurnModifier = IsValid(CurrentRangeWeapon) && IsAiming() ? CurrentRangeWeapon->GetAimTurnModifier() : CameraBaseSpeedMultiplier;
 	AddControllerYawInput(Value * TurnModifier);
 }
 
 void APlayerCharacter::LookUpAtRate(float Value)
 {
 	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-	float LookUpModifier = IsValid(CurrentRangeWeapon) && IsAiming() ? CurrentRangeWeapon->GetAimLookUpModifier() : 1.f;
+	float LookUpModifier = IsValid(CurrentRangeWeapon) && IsAiming() ? CurrentRangeWeapon->GetAimLookUpModifier() : CameraBaseSpeedMultiplier;
 	AddControllerPitchInput(Value * LookUpModifier);
 }
 
