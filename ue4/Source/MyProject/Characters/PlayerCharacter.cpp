@@ -52,6 +52,11 @@ void APlayerCharacter::Turn(float Value)
 	TurnAtRate(Value);
 }
 
+void APlayerCharacter::LookUp(float Value)
+{
+	LookUpAtRate(Value);
+}
+
 void APlayerCharacter::TurnAtRate(float Value)
 {
 	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
@@ -59,7 +64,7 @@ void APlayerCharacter::TurnAtRate(float Value)
 	AddControllerYawInput(Value * TurnModifier);
 }
 
-void APlayerCharacter::LookUp(float Value)
+void APlayerCharacter::LookUpAtRate(float Value)
 {
 	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
 	float LookUpModifier = IsValid(CurrentRangeWeapon) && IsAiming() ? CurrentRangeWeapon->GetAimLookUpModifier() : 1.f;

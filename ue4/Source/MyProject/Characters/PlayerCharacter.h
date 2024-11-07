@@ -32,6 +32,7 @@ public:
 	virtual void OnJumped_Implementation() override;
 
 	void TurnAtRate(float Value);
+	void LookUpAtRate(float Value);
 
 protected:
 	bool bIsProningCamera = false;
