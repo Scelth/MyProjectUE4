@@ -15,7 +15,7 @@ class MYPROJECT_API UCharacterEquipmentComponent : public UActorComponent
 public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
-	ARangeWeaponItem* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; };
+	ARangeWeaponItem* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
 
 protected:
 	virtual void BeginPlay() override;

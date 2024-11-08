@@ -36,6 +36,7 @@ struct FMantlingSettings
 
 class UMPBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
+class UMPCharacterAttributesComponent;
 
 UCLASS(Abstract, NotBlueprintable)
 class MYPROJECT_API AMPBaseCharacter : public ACharacter
@@ -45,10 +46,10 @@ class MYPROJECT_API AMPBaseCharacter : public ACharacter
 public:
 	AMPBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
-	virtual void MoveForward(float Value) {};
-	virtual void MoveRight(float Value) {};
-	virtual void Turn(float Value) {};
-	virtual void LookUp(float Value) {};
+	virtual void MoveForward(float Value) {}
+	virtual void MoveRight(float Value) {}
+	virtual void Turn(float Value) {}
+	virtual void LookUp(float Value) {}
 
 	virtual void ChangeCrouchState();
 	virtual void ChangeProneState();
@@ -65,8 +66,8 @@ public:
 
 	void StartAiming();
 	void StopAiming();
-	bool IsAiming() const { return bIsAiming; };
-	float GetAimingMovementSpeed() const { return CurrentAimingMovementSpeed; };
+	bool IsAiming() const { return bIsAiming; }
+	float GetAimingMovementSpeed() const { return CurrentAimingMovementSpeed; }
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStartAiming();
@@ -74,9 +75,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
-	virtual void SwimForward(float Value) {};
-	virtual void SwimRight(float Value) {};
-	virtual void SwimUp(float Value) {};
+	virtual void SwimForward(float Value) {}
+	virtual void SwimRight(float Value) {}
+	virtual void SwimUp(float Value) {}
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
@@ -89,7 +90,8 @@ public:
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void NotifyJumpApex() override;
 
-	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const;
+	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
+	const UMPCharacterAttributesComponent* GetCharacterAttributesComponent() const { return CharacterAttributesComponent; }
 
 	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
@@ -130,7 +132,7 @@ protected:
 	UMPBaseCharacterMovementComponent* MPBaseCharacterMovementComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
-	class UMPCharacterAttributesComponent* CharacterAttributesComponent;
+	UMPCharacterAttributesComponent* CharacterAttributesComponent;
 
 	virtual void OnDeath();
 	virtual void HandleStaminaEvent(bool bIsOutOfStamina);
@@ -140,7 +142,7 @@ protected:
 	class UCurveFloat* FallDamageCurve;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
-	class UCharacterEquipmentComponent* CharacterEquipmentComponent;
+	UCharacterEquipmentComponent* CharacterEquipmentComponent;
 
 	virtual void OnStartAimingInternal();
 	virtual void OnStopAimingInternal();

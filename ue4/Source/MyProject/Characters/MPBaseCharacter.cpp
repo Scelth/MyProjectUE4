@@ -129,11 +129,6 @@ void AMPBaseCharacter::NotifyJumpApex()
 	CurrentFallApex = GetActorLocation();
 }
 
-const UCharacterEquipmentComponent* AMPBaseCharacter::GetCharacterEquipmentComponent() const
-{
-	return CharacterEquipmentComponent;
-}
-
 void AMPBaseCharacter::Mantle()
 {
 	if (!GetBaseCharacterMovementComponent()->IsMantling())

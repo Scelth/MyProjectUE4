@@ -93,29 +93,32 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 
 void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 {
-	if (!IsSwimmingUnderWater() && IsAlive())
+	if (IsAlive())
 	{
-		Oxygen += OxygenRestoreVelocity * DeltaTime;
-
-		if (Oxygen >= MaxOxygen)
+		if (!IsSwimmingUnderWater())
 		{
-			Oxygen = MaxOxygen;
-		}
-	}
+			Oxygen += OxygenRestoreVelocity * DeltaTime;
 
-	else if (IsSwimmingUnderWater() && IsAlive())
-	{
-		Oxygen -= SwimOxygenConsumptionVelocity * DeltaTime;
-
-		if (Oxygen <= 0.f)
-		{
-			Oxygen = 0.f;
-
-			if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
+			if (Oxygen >= MaxOxygen)
 			{
-				LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
+				Oxygen = MaxOxygen;
+			}
+		}
 
-				OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
+		else if (IsSwimmingUnderWater())
+		{
+			Oxygen -= SwimOxygenConsumptionVelocity * DeltaTime;
+
+			if (Oxygen <= 0.f)
+			{
+				Oxygen = 0.f;
+
+				if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
+				{
+					LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
+
+					OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
+				}
 			}
 		}
 	}

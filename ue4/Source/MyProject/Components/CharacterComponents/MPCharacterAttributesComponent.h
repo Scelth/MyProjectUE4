@@ -22,6 +22,10 @@ public:
 
 	bool IsAlive() { return Health > 0.f; }
 
+	float GetHealthPercent() const { return Health / MaxHealth; }
+	float GetStaminaPercent() const { return Stamina / MaxStamina; }
+	float GetOxygenPercent() const { return Oxygen / MaxOxygen; }
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -27,12 +27,12 @@ public:
 	void StartAim();
 	void StopAim();
 
-	float GetAimFOV() const { return AimFOV; };
-	float GetAimMovementMaxSpeed() const { return AimMovementMaxSpeed; };
-	float GetAimTurnModifier() const { return AimTurnModifier; };
-	float GetAimLookUpModifier() const { return AimLookUpModifier; };
+	float GetAimFOV() const { return AimFOV; }
+	float GetAimMovementMaxSpeed() const { return AimMovementMaxSpeed; }
+	float GetAimTurnModifier() const { return AimTurnModifier; }
+	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
-	FTransform GetForeGripTransform() const { return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip); };
+	FTransform GetForeGripTransform() const { return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip); }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
