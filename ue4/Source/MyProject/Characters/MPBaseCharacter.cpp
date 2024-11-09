@@ -20,6 +20,14 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
 }
 
+void AMPBaseCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
+	CharacterAttributesComponent->OnOutOfStaminaEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
+}
+
 void AMPBaseCharacter::ChangeCrouchState()
 {
 	if (!GetBaseCharacterMovementComponent()->IsProning())
@@ -87,14 +95,6 @@ void AMPBaseCharacter::Jump()
 bool AMPBaseCharacter::CanJumpInternal_Implementation() const
 {
 	return Super::CanJumpInternal_Implementation() && !GetBaseCharacterMovementComponent()->IsMantling();
-}
-
-void AMPBaseCharacter::BeginPlay()
-{
-	Super::BeginPlay();
-
-	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
-	CharacterAttributesComponent->OnOutOfStaminaEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
 }
 
 void AMPBaseCharacter::Tick(float DeltaTime)
@@ -180,11 +180,14 @@ void AMPBaseCharacter::Mantle()
 
 void AMPBaseCharacter::StartFire()
 {
-	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
-
-	if (IsValid(CurrentRangeWeapon))
+	if (!GetBaseCharacterMovementComponent()->IsSprinting() && !GetBaseCharacterMovementComponent()->IsSwimming())
 	{
-		CurrentRangeWeapon->StartFire();
+		ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+
+		if (IsValid(CurrentRangeWeapon))
+		{
+			CurrentRangeWeapon->StartFire();
+		}
 	}
 }
 
@@ -200,19 +203,22 @@ void AMPBaseCharacter::StopFire()
 
 void AMPBaseCharacter::StartAiming()
 {
-	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-
-	if (!IsValid(CurrentRangeWeapon))
+	if (!GetBaseCharacterMovementComponent()->IsSprinting() && !GetBaseCharacterMovementComponent()->IsSwimming())
 	{
-		return;
+		ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+
+		if (!IsValid(CurrentRangeWeapon))
+		{
+			return;
+		}
+
+		bIsAiming = true;
+
+		CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
+		CurrentRangeWeapon->StartAim();
+
+		OnStartAiming();
 	}
-
-	bIsAiming = true;
-
-	CurrentAimingMovementSpeed = CurrentRangeWeapon->GetAimMovementMaxSpeed();
-	CurrentRangeWeapon->StartAim();
-
-	OnStartAiming();
 }
 
 void AMPBaseCharacter::StopAiming()

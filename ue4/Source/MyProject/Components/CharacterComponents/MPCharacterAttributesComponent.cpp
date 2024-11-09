@@ -63,6 +63,11 @@ void UMPCharacterAttributesComponent::OnTakeAnyDamage(AActor* DamageActor, float
 
 void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 {
+	if (!IsAlive())
+	{
+		return;
+	}
+
 	if (Stamina >= MinStaminaToSprint && OnOutOfStaminaEvent.IsBound())
 	{
 		OnOutOfStaminaEvent.Broadcast(false);
@@ -70,7 +75,7 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 
 	if (!CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting())
 	{
-		Stamina += StaminaRestoreVelocity * DeltaTime;
+		Stamina = FMath::Clamp(Stamina + StaminaRestoreVelocity * DeltaTime, 0.f, MaxStamina);
 
 		if (Stamina >= MaxStamina && OnOutOfStaminaEvent.IsBound())
 		{
@@ -81,7 +86,7 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 
 	else if (CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting() && !CachedBaseCharacterOwner->IsAiming())
 	{
-		Stamina -= SprintStaminaConsumptionVelocity * DeltaTime;
+		Stamina = FMath::Clamp(Stamina - SprintStaminaConsumptionVelocity * DeltaTime, 0.f, MaxStamina);
 
 		if (Stamina <= 0.f && OnOutOfStaminaEvent.IsBound())
 		{
@@ -93,32 +98,34 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 
 void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 {
-	if (IsAlive())
+	if (!IsAlive())
 	{
-		if (!IsSwimmingUnderWater())
-		{
-			Oxygen += OxygenRestoreVelocity * DeltaTime;
+		return;
+	}
 
-			if (Oxygen >= MaxOxygen)
-			{
-				Oxygen = MaxOxygen;
-			}
+	if (!IsSwimmingUnderWater())
+	{
+		Oxygen = FMath::Clamp(Oxygen + SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
+
+		if (Oxygen >= MaxOxygen)
+		{
+			Oxygen = MaxOxygen;
 		}
+	}
 
-		else if (IsSwimmingUnderWater())
+	else if (IsSwimmingUnderWater())
+	{
+		Oxygen = FMath::Clamp(Oxygen - SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
+
+		if (Oxygen <= 0.f)
 		{
-			Oxygen -= SwimOxygenConsumptionVelocity * DeltaTime;
+			Oxygen = 0.f;
 
-			if (Oxygen <= 0.f)
+			if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
 			{
-				Oxygen = 0.f;
+				LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
 
-				if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
-				{
-					LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
-
-					OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
-				}
+				OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
 			}
 		}
 	}

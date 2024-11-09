@@ -9,13 +9,10 @@ class MYPROJECT_API UPlayerHUDWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	class UPlayerAttributesWidget* GetPlayetAttributesWidget();
+
 protected:
-	UFUNCTION(BlueprintCallable)
-	float GetHealthPercent() const;
-
-	UFUNCTION(BlueprintCallable)
-	float GetStaminaPercent() const;
-
-	UFUNCTION(BlueprintCallable)
-	float GetOxygenPercent() const;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
+	FName PlayetAttributesWidgetName;
 };
