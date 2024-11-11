@@ -53,9 +53,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-
 	virtual void OnMovementModeChanged(EMovementMode PreviousMovementMode, uint8 PreviousCustomMode) override;
-
 	virtual void PhysCustom(float DeltaTime, int32 Iterations) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Sprint", meta = (ClampMin = 0.f, UIMin = 0.f))

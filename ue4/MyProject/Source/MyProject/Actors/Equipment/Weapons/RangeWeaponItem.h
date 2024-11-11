@@ -11,6 +11,8 @@ enum class EWeaponFireMode : uint8
 	FullAuto
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAmmoChanged, int32)
+
 class UAnimMontage;
 
 UCLASS(Blueprintable)
@@ -32,9 +34,19 @@ public:
 	float GetAimTurnModifier() const { return AimTurnModifier; }
 	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
+	int32 GetAmmo() const { return Ammo; }
+
+	void SetAmmo(int32 NewAmmo);
+
+	bool CanShoot() const { return Ammo > 0; }
+
 	FTransform GetForeGripTransform() const { return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip); }
 
+	FOnAmmoChanged OnAmmoChangedEvent;
+
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
 	class USkeletalMeshComponent* WeaponMesh;
 
@@ -65,13 +77,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.f, UIMin = 0.f, ClampMax = 120.f, UIMax = 120.f))
 	float AimFOV = 60.f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.f, ClampMax = 1.f))
 	float AimTurnModifier = 0.5f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.0f, ClampMax = 1.0f))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Aiming", meta = (ClampMin = 0.f, ClampMax = 1.f))
 	float AimLookUpModifier = 0.5f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo", meta = (ClampMin = 1, UIMin = 1))
+	int32 MaxAmmo = 30;
+
 private:
+	int32 Ammo = 0;
+
 	bool bIsAiming = false;
 
 	float Interval = 60.f;

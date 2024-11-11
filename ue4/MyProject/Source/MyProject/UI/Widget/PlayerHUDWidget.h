@@ -12,6 +12,7 @@ class MYPROJECT_API UPlayerHUDWidget : public UUserWidget
 public:
 	class UPlayerAttributesWidget* GetPlayetAttributesWidget();
 	class UReticleWidget* GetReticleWidget();
+	class UAmmoWidget* GetAmmoWidget();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
@@ -19,4 +20,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
 	FName ReticleWidgetName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
+	FName AmmoWidgetName;
 };

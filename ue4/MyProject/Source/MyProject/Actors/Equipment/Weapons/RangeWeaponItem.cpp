@@ -40,6 +40,23 @@ void ARangeWeaponItem::StopAim()
 	bIsAiming = false;
 }
 
+void ARangeWeaponItem::SetAmmo(int32 NewAmmo)
+{
+	Ammo = NewAmmo;
+
+	if (OnAmmoChangedEvent.IsBound())
+	{
+		OnAmmoChangedEvent.Broadcast(Ammo);
+	}
+}
+
+void ARangeWeaponItem::BeginPlay()
+{
+	Super::BeginPlay();
+
+	SetAmmo(MaxAmmo);
+}
+
 float ARangeWeaponItem::GetCurrentBulletSpreadAngle() const
 {
 	float AngleInDegrees = bIsAiming ? AimSpreadAngle : SpreadAngle;
@@ -65,6 +82,12 @@ void ARangeWeaponItem::MakeShot()
 	checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("ARangeWeaponItem::Attack() only character can be an owner of range weapon"));
 	AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
 
+	if (!CanShoot())
+	{
+		StopFire();
+		return;
+	}
+
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
 	PlayAnimMontage(WeaponFireMontage);
 
@@ -82,6 +105,8 @@ void ARangeWeaponItem::MakeShot()
 
 	FVector PlayerViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
 	PlayerViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.f, GetCurrentBulletSpreadAngle()), PlayerViewRotation);
+
+	SetAmmo(Ammo - 1);
 
 	WeaponBarell->Shot(PlayerViewPoint, PlayerViewDirection, Controller);
 }

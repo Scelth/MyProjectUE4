@@ -20,7 +20,7 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		return;
 	}
 
-	UMPBaseCharacterMovementComponent* CharacterMovement = CachedBaseCharacter->GetBaseCharacterMovementComponent();
+	UMPBaseCharacterMovementComponent* CharacterMovement = CachedBaseCharacter->GetBaseCharacterMovementComponent_Mutable();
 	
 	Speed = CharacterMovement->Velocity.Size();
 	Direction = CalculateDirection(CharacterMovement->Velocity, CachedBaseCharacter->GetActorRotation());

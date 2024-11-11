@@ -24,8 +24,8 @@ void AMPBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	CharacterAttributesComponent->OnDeathEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
-	CharacterAttributesComponent->OnOutOfStaminaEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
+	CharacterAttributesComponent->OnDeathChangedEvent.AddUObject(this, &AMPBaseCharacter::OnDeath);
+	CharacterAttributesComponent->OnOutOfStaminaChangedEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
 }
 
 void AMPBaseCharacter::ChangeCrouchState()
@@ -48,12 +48,12 @@ void AMPBaseCharacter::ChangeProneState()
 {
 	if (GetCharacterMovement()->IsCrouching() && !GetBaseCharacterMovementComponent()->IsProning())
 	{
-		GetBaseCharacterMovementComponent()->StartProne();
+		GetBaseCharacterMovementComponent_Mutable()->StartProne();
 	}
 
 	else if (GetBaseCharacterMovementComponent()->IsProning())
 	{
-		GetBaseCharacterMovementComponent()->StopProne(true);
+		GetBaseCharacterMovementComponent_Mutable()->StopProne(true);
 	}
 }
 
@@ -79,7 +79,7 @@ void AMPBaseCharacter::Jump()
 {
 	if (GetBaseCharacterMovementComponent()->IsProning())
 	{
-		GetBaseCharacterMovementComponent()->StopProne(false);
+		GetBaseCharacterMovementComponent_Mutable()->StopProne(false);
 		UnCrouch();
 	}
 
@@ -108,7 +108,7 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 
 void AMPBaseCharacter::Falling()
 {
-	GetBaseCharacterMovementComponent()->bNotifyApex = true;
+	GetBaseCharacterMovementComponent_Mutable()->bNotifyApex = true;
 }
 
 void AMPBaseCharacter::Landed(const FHitResult& Hit)
@@ -170,7 +170,7 @@ void AMPBaseCharacter::Mantle()
 			MantlingParameters.StartTime = FMath::GetMappedRangeValueClamped(SourceRange, TargetRange, MantlingHeight);
 			MantlingParameters.InitialAnimationLocation = MantlingParameters.TargetLocation - MantlingSettings.AnimationCorrectionZ * FVector::UpVector + MantlingSettings.AnimationCorrectionXY * LedgeDescription.LedgeNormal;
 
-			GetBaseCharacterMovementComponent()->StartMantle(MantlingParameters);
+			GetBaseCharacterMovementComponent_Mutable()->StartMantle(MantlingParameters);
 
 			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			AnimInstance->Montage_Play(MantlingSettings.MantlingMontage, 1.f, EMontagePlayReturnType::Duration, MantlingParameters.StartTime);
@@ -266,22 +266,22 @@ void AMPBaseCharacter::OnDeath()
 
 void AMPBaseCharacter::HandleStaminaEvent(bool bIsOutOfStamina)
 {
-	GetBaseCharacterMovementComponent()->SetIsOutOfStamina(bIsOutOfStamina);
+	GetBaseCharacterMovementComponent_Mutable()->SetIsOutOfStamina(bIsOutOfStamina);
 }
 
 void AMPBaseCharacter::OnStartAimingInternal() 
 {
-	if (OnAimingStateChangeEvent.IsBound())
+	if (OnAimingStateChangedEvent.IsBound())
 	{
-		OnAimingStateChangeEvent.Broadcast(true);
+		OnAimingStateChangedEvent.Broadcast(true);
 	}
 }
 
 void AMPBaseCharacter::OnStopAimingInternal() 
 {
-	if (OnAimingStateChangeEvent.IsBound())
+	if (OnAimingStateChangedEvent.IsBound())
 	{
-		OnAimingStateChangeEvent.Broadcast(false);
+		OnAimingStateChangedEvent.Broadcast(false);
 	}
 }
 
@@ -334,13 +334,13 @@ void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
 	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint() && !GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
-		GetBaseCharacterMovementComponent()->StartSprint();
+		GetBaseCharacterMovementComponent_Mutable()->StartSprint();
 		OnStartSprint();
 	}
 
 	if (!bIsSprintRequested && GetBaseCharacterMovementComponent()->IsSprinting())
 	{
-		GetBaseCharacterMovementComponent()->StopSprint();
+		GetBaseCharacterMovementComponent_Mutable()->StopSprint();
 		OnStopSprint();
 	}
 }

@@ -35,4 +35,15 @@ void UCharacterEquipmentComponent::CreateLoadout()
 	CurrentEquippedWeapon = GetWorld()->SpawnActor<ARangeWeaponItem>(SideArmClass);
 	CurrentEquippedWeapon->AttachToComponent(CachedBaseCharacter->GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, SocketCharacterWeapon);
 	CurrentEquippedWeapon->SetOwner(CachedBaseCharacter.Get());
+	CurrentEquippedWeapon->OnAmmoChangedEvent.AddUFunction(this, FName("OnCurrentWeaponAmmoChanged"));
+
+	OnCurrentWeaponAmmoChanged(CurrentEquippedWeapon->GetAmmo());
+}
+
+void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
+{
+	if (OnCurrentWeaponAmmoChangedEvent.IsBound())
+	{
+		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo);
+	}
 }

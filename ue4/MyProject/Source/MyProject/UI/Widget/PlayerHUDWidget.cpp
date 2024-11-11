@@ -2,6 +2,7 @@
 #include "Blueprint/WidgetTree.h"
 #include "PlayerAttributesWidget.h"
 #include "ReticleWidget.h"
+#include "AmmoWidget.h"
 
 UPlayerAttributesWidget* UPlayerHUDWidget::GetPlayetAttributesWidget()
 {
@@ -11,4 +12,9 @@ UPlayerAttributesWidget* UPlayerHUDWidget::GetPlayetAttributesWidget()
 UReticleWidget* UPlayerHUDWidget::GetReticleWidget()
 {
 	return WidgetTree->FindWidget<UReticleWidget>(ReticleWidgetName);
+}
+
+UAmmoWidget* UPlayerHUDWidget::GetAmmoWidget()
+{
+	return WidgetTree->FindWidget<UAmmoWidget>(AmmoWidgetName);
 }

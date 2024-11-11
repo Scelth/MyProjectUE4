@@ -77,7 +77,7 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
-	FOnAimingStateChanged OnAimingStateChangeEvent;
+	FOnAimingStateChanged OnAimingStateChangedEvent;
 
 	virtual void SwimForward(float Value) {}
 	virtual void SwimRight(float Value) {}
@@ -95,8 +95,13 @@ public:
 	virtual void NotifyJumpApex() override;
 
 	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
-	UMPCharacterAttributesComponent* GetCharacterAttributesComponent() const { return CharacterAttributesComponent; }
-	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
+	UCharacterEquipmentComponent* GetCharacterEquipmentComponent_Mutable() const { return CharacterEquipmentComponent; }
+
+	const UMPCharacterAttributesComponent* GetCharacterAttributesComponent() const { return CharacterAttributesComponent; }
+	UMPCharacterAttributesComponent* GetCharacterAttributesComponent_Mutable() const { return CharacterAttributesComponent; }
+
+	const UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
+	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent_Mutable() const { return MPBaseCharacterMovementComponent; }
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "Character | Movement")

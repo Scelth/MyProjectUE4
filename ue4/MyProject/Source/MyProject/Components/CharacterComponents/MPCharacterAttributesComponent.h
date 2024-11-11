@@ -4,11 +4,11 @@
 #include "Components/ActorComponent.h"
 #include "MPCharacterAttributesComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnDeathEventSignature);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOutOfStaminaEventSignature, bool);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChangedSignature, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaChangedSignature, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnOxygenChangedSignature, float);
+DECLARE_MULTICAST_DELEGATE(FOnDeathEventChanged);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOutOfStaminaEventChanged, bool);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaChanged, float);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnOxygenChanged, float);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MYPROJECT_API UMPCharacterAttributesComponent : public UActorComponent
@@ -20,17 +20,21 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FOnDeathEventSignature OnDeathEvent;
-	FOutOfStaminaEventSignature OnOutOfStaminaEvent;
-	FOnHealthChangedSignature OnHealthChangeEvent;
-	FOnStaminaChangedSignature OnStaminaChangeEvent;
-	FOnOxygenChangedSignature OnOxygenChangeEvent;
+	FOnDeathEventChanged OnDeathChangedEvent;
+	FOutOfStaminaEventChanged OnOutOfStaminaChangedEvent;
+	FOnHealthChanged OnHealthChangedEvent;
+	FOnStaminaChanged OnStaminaChangedEvent;
+	FOnOxygenChanged OnOxygenChangedEvent;
 
 	bool IsAlive() { return Health > 0.f; }
 
 	float GetHealthPercent() const { return Health / MaxHealth; }
 	float GetStaminaPercent() const { return Stamina / MaxStamina; }
 	float GetOxygenPercent() const { return Oxygen / MaxOxygen; }
+
+	void SetHealth(float NewHealth);
+	void SetStamina(float NewStamina);
+	void SetOxygen(float NewOxygen);
 
 protected:
 	virtual void BeginPlay() override;

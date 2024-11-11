@@ -13,14 +13,44 @@ UMPCharacterAttributesComponent::UMPCharacterAttributesComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UMPCharacterAttributesComponent::SetHealth(float NewHealth)
+{
+	Health = NewHealth;
+
+	if (OnHealthChangedEvent.IsBound())
+	{
+		OnHealthChangedEvent.Broadcast(GetHealthPercent());
+	}
+}
+
+void UMPCharacterAttributesComponent::SetStamina(float NewStamina)
+{
+	Stamina = NewStamina;
+
+	if (OnStaminaChangedEvent.IsBound())
+	{
+		OnStaminaChangedEvent.Broadcast(GetStaminaPercent());
+	}
+}
+
+void UMPCharacterAttributesComponent::SetOxygen(float NewOxygen)
+{
+	Oxygen = NewOxygen;
+
+	if (OnOxygenChangedEvent.IsBound())
+	{
+		OnOxygenChangedEvent.Broadcast(GetOxygenPercent());
+	}
+}
+
 void UMPCharacterAttributesComponent::BeginPlay()
 {
 	Super::BeginPlay();
 	CachedBaseCharacterOwner = Cast<AMPBaseCharacter>(GetOwner());
 	
-	Health = MaxHealth;
-	Stamina = MaxStamina;
-	Oxygen = MaxOxygen;
+	SetHealth(MaxHealth);
+	SetStamina(MaxStamina);
+	SetOxygen(MaxOxygen);
 
 	CachedBaseCharacterOwner->OnTakeAnyDamage.AddDynamic(this, &UMPCharacterAttributesComponent::OnTakeAnyDamage);
 }
@@ -57,18 +87,15 @@ void UMPCharacterAttributesComponent::OnTakeAnyDamage(AActor* DamageActor, float
 	
 	UpdateHealthValue();
 
-	if (Health <= 0.f && OnDeathEvent.IsBound())
+	if (Health <= 0.f && OnDeathChangedEvent.IsBound())
 	{
-		OnDeathEvent.Broadcast();
+		OnDeathChangedEvent.Broadcast();
 	}
 }
 
 void UMPCharacterAttributesComponent::UpdateHealthValue()
 {
-	if (OnHealthChangeEvent.IsBound())
-	{
-		OnHealthChangeEvent.Broadcast(GetHealthPercent());
-	}
+	SetHealth(Health);
 }
 
 void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
@@ -78,19 +105,19 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 		return;
 	}
 
-	if (Stamina >= MinStaminaToSprint && OnOutOfStaminaEvent.IsBound())
+	if (Stamina >= MinStaminaToSprint && OnOutOfStaminaChangedEvent.IsBound())
 	{
-		OnOutOfStaminaEvent.Broadcast(false);
+		OnOutOfStaminaChangedEvent.Broadcast(false);
 	}
 
 	if (!CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSprinting())
 	{
 		Stamina = FMath::Clamp(Stamina + StaminaRestoreVelocity * DeltaTime, 0.f, MaxStamina);
 
-		if (Stamina >= MaxStamina && OnOutOfStaminaEvent.IsBound())
+		if (Stamina >= MaxStamina && OnOutOfStaminaChangedEvent.IsBound())
 		{
 			Stamina = MaxStamina;
-			OnOutOfStaminaEvent.Broadcast(false);
+			OnOutOfStaminaChangedEvent.Broadcast(false);
 		}
 	}
 
@@ -98,17 +125,14 @@ void UMPCharacterAttributesComponent::UpdateStaminaValue(float DeltaTime)
 	{
 		Stamina = FMath::Clamp(Stamina - SprintStaminaConsumptionVelocity * DeltaTime, 0.f, MaxStamina);
 
-		if (Stamina <= 0.f && OnOutOfStaminaEvent.IsBound())
+		if (Stamina <= 0.f && OnOutOfStaminaChangedEvent.IsBound())
 		{
 			Stamina = 0.f;
-			OnOutOfStaminaEvent.Broadcast(true);
+			OnOutOfStaminaChangedEvent.Broadcast(true);
 		}
 	}
 
-	if (OnStaminaChangeEvent.IsBound())
-	{	  
-		OnStaminaChangeEvent.Broadcast(GetStaminaPercent());
-	}
+	SetStamina(Stamina);
 }
 
 void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
@@ -148,10 +172,7 @@ void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 		}
 	}
 
-	if (OnOxygenChangeEvent.IsBound())
-	{	  
-		OnOxygenChangeEvent.Broadcast(GetOxygenPercent());
-	}
+	SetOxygen(Oxygen);
 }
 
 bool UMPCharacterAttributesComponent::IsSwimmingUnderWater() const
@@ -175,6 +196,7 @@ bool UMPCharacterAttributesComponent::IsSwimmingUnderWater() const
 void UMPCharacterAttributesComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
 	UpdateHealthValue();
 	UpdateStaminaValue(DeltaTime);
 	UpdateOxygenValue(DeltaTime);

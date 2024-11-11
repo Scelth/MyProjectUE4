@@ -2,9 +2,11 @@
 #include "MyProject/Characters/MPBaseCharacter.h"
 #include "Blueprint/UserWidget.h"
 #include "MyProject/Components/CharacterComponents/MPCharacterAttributesComponent.h"
+#include "MyProject/Components/CharacterComponents/CharacterEquipmentComponent.h"
 #include "MyProject/UI/Widget/ReticleWidget.h"
 #include "MyProject/UI/Widget/PlayerAttributesWidget.h"
 #include "MyProject/UI/Widget/PlayerHUDWidget.h"
+#include "MyProject/UI/Widget/AmmoWidget.h"
 
 void AMPPlayerController::SetPawn(APawn* InPawn)
 {
@@ -54,17 +56,24 @@ void AMPPlayerController::CreateAndInitializeWidgets()
 	{
 		UReticleWidget* ReticleWidget = PlayerHUDWidget->GetReticleWidget();
 		UPlayerAttributesWidget* PlayerAttributesWidget = PlayerHUDWidget->GetPlayetAttributesWidget();
+		UAmmoWidget* AmmoWidget = PlayerHUDWidget->GetAmmoWidget();
 
 		if (IsValid(ReticleWidget))
 		{
-			CachedBaseCharacter->OnAimingStateChangeEvent.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+			CachedBaseCharacter->OnAimingStateChangedEvent.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
 		}
 
 		if (IsValid(PlayerAttributesWidget))
 		{
-			CachedBaseCharacter->GetCharacterAttributesComponent()->OnHealthChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnHealthPercentChanged"));
-			CachedBaseCharacter->GetCharacterAttributesComponent()->OnStaminaChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnStaminaPercentChanged"));
-			CachedBaseCharacter->GetCharacterAttributesComponent()->OnOxygenChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnOxygenPercentChanged"));
+			CachedBaseCharacter->GetCharacterAttributesComponent_Mutable()->OnHealthChangedEvent.AddUFunction(PlayerAttributesWidget, FName("UpdateHealthPercent"));
+			CachedBaseCharacter->GetCharacterAttributesComponent_Mutable()->OnStaminaChangedEvent.AddUFunction(PlayerAttributesWidget, FName("UpdateStaminaPercent"));
+			CachedBaseCharacter->GetCharacterAttributesComponent_Mutable()->OnOxygenChangedEvent.AddUFunction(PlayerAttributesWidget, FName("UpdateOxygenPercent"));
+		}
+
+		if (IsValid(AmmoWidget))
+		{
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
 		}
 	}
 }

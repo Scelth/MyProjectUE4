@@ -8,26 +8,8 @@ UCLASS()
 class MYPROJECT_API UPlayerAttributesWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
 protected:
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnHealthPercentChanged(float HealthPercent_In);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnStaminaPercentChanged(float StaminaPercent_In);
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnOxygenPercentChanged(float OxygenPercent_In);
-
-	UFUNCTION(BlueprintCallable)
-	float GetHealthPercent() const;
-
-	UFUNCTION(BlueprintCallable)
-	float GetStaminaPercent() const;
-
-	UFUNCTION(BlueprintCallable)
-	float GetOxygenPercent() const;
-
 	UFUNCTION(BlueprintCallable)
 	ESlateVisibility GetHealthVisibility() const;
 
@@ -37,15 +19,24 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	ESlateVisibility GetOxygenVisibility() const;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	float HealthPercent;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	float StaminaPercent;
 
-	UPROPERTY(BlueprintReadWrite)
+	UPROPERTY(BlueprintReadOnly)
 	float OxygenPercent;
 
 private:
+	UFUNCTION()
+	void UpdateHealthPercent(float NewHealth) { HealthPercent = NewHealth; }
+
+	UFUNCTION()
+	void UpdateStaminaPercent(float NewStamina) { StaminaPercent = NewStamina; }
+
+	UFUNCTION()
+	void UpdateOxygenPercent(float NewOxygen) { OxygenPercent = NewOxygen; }
+
 	float ValueForVisibility = 1.f;
 };
