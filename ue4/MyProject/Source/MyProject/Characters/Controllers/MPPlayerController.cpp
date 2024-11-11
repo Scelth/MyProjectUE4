@@ -1,10 +1,17 @@
 #include "MPPlayerController.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
+#include "Blueprint/UserWidget.h"
+#include "MyProject/Components/CharacterComponents/MPCharacterAttributesComponent.h"
+#include "MyProject/UI/Widget/ReticleWidget.h"
+#include "MyProject/UI/Widget/PlayerAttributesWidget.h"
+#include "MyProject/UI/Widget/PlayerHUDWidget.h"
 
 void AMPPlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
 	CachedBaseCharacter = Cast<AMPBaseCharacter>(InPawn);
+
+	CreateAndInitializeWidgets();
 }
 
 void AMPPlayerController::SetupInputComponent()
@@ -29,6 +36,37 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Attack", EInputEvent::IE_Released, this, &AMPPlayerController::PlayerStopFire);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartAiming);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AMPPlayerController::StopAiming);
+}
+
+void AMPPlayerController::CreateAndInitializeWidgets()
+{
+	if (!IsValid(PlayerHUDWidget))
+	{
+		PlayerHUDWidget = CreateWidget<UPlayerHUDWidget>(GetWorld(), PlayerHUDWidgetClass);
+
+		if (IsValid(PlayerHUDWidget))
+		{
+			PlayerHUDWidget->AddToViewport();
+		}
+	}
+
+	if (IsValid(PlayerHUDWidget) && CachedBaseCharacter.IsValid())
+	{
+		UReticleWidget* ReticleWidget = PlayerHUDWidget->GetReticleWidget();
+		UPlayerAttributesWidget* PlayerAttributesWidget = PlayerHUDWidget->GetPlayetAttributesWidget();
+
+		if (IsValid(ReticleWidget))
+		{
+			CachedBaseCharacter->OnAimingStateChangeEvent.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+		}
+
+		if (IsValid(PlayerAttributesWidget))
+		{
+			CachedBaseCharacter->GetCharacterAttributesComponent()->OnHealthChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnHealthPercentChanged"));
+			CachedBaseCharacter->GetCharacterAttributesComponent()->OnStaminaChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnStaminaPercentChanged"));
+			CachedBaseCharacter->GetCharacterAttributesComponent()->OnOxygenChangeEvent.AddUFunction(PlayerAttributesWidget, FName("OnOxygenPercentChanged"));
+		}
+	}
 }
 
 void AMPPlayerController::MoveForward(float Value)

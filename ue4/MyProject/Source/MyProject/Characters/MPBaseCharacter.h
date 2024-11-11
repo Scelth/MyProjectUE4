@@ -34,6 +34,8 @@ struct FMantlingSettings
 	float MinHeightStartTime = 0.5f;
 };
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
+
 class UMPBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
 class UMPCharacterAttributesComponent;
@@ -75,6 +77,8 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
+	FOnAimingStateChanged OnAimingStateChangeEvent;
+
 	virtual void SwimForward(float Value) {}
 	virtual void SwimRight(float Value) {}
 	virtual void SwimUp(float Value) {}
@@ -92,7 +96,6 @@ public:
 
 	const UCharacterEquipmentComponent* GetCharacterEquipmentComponent() const { return CharacterEquipmentComponent; }
 	UMPCharacterAttributesComponent* GetCharacterAttributesComponent() const { return CharacterAttributesComponent; }
-
 	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent() const { return MPBaseCharacterMovementComponent; }
 
 protected:

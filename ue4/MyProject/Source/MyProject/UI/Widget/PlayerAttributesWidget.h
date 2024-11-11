@@ -10,11 +10,14 @@ class MYPROJECT_API UPlayerAttributesWidget : public UUserWidget
 	GENERATED_BODY()
 	
 protected:
-	virtual void NativeConstruct() override;
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnHealthPercentChanged(float HealthPercent_In);
 
-	void SetHealthPercent(float HealthProcent_In);
-	void SetStaminaPercent(float StaminaProcent_In);
-	void SetOxygenPercent(float OxygenProcent_In);
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnStaminaPercentChanged(float StaminaPercent_In);
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnOxygenPercentChanged(float OxygenPercent_In);
 
 	UFUNCTION(BlueprintCallable)
 	float GetHealthPercent() const;
@@ -34,11 +37,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	ESlateVisibility GetOxygenVisibility() const;
 
+	UPROPERTY(BlueprintReadWrite)
+	float HealthPercent;
+
+	UPROPERTY(BlueprintReadWrite)
+	float StaminaPercent;
+
+	UPROPERTY(BlueprintReadWrite)
+	float OxygenPercent;
+
 private:
 	float ValueForVisibility = 1.f;
-	float HealthProcent;
-	float StaminaProcent;
-	float OxygenProcent;
-
-	void BindToAttributeChanges();
 };

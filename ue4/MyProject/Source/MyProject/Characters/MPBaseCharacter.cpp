@@ -269,9 +269,21 @@ void AMPBaseCharacter::HandleStaminaEvent(bool bIsOutOfStamina)
 	GetBaseCharacterMovementComponent()->SetIsOutOfStamina(bIsOutOfStamina);
 }
 
-void AMPBaseCharacter::OnStartAimingInternal() { }
+void AMPBaseCharacter::OnStartAimingInternal() 
+{
+	if (OnAimingStateChangeEvent.IsBound())
+	{
+		OnAimingStateChangeEvent.Broadcast(true);
+	}
+}
 
-void AMPBaseCharacter::OnStopAimingInternal() { }
+void AMPBaseCharacter::OnStopAimingInternal() 
+{
+	if (OnAimingStateChangeEvent.IsBound())
+	{
+		OnAimingStateChangeEvent.Broadcast(false);
+	}
+}
 
 float AMPBaseCharacter::CalculateIKParametersForSocketName(const FName& SocketName) const
 {

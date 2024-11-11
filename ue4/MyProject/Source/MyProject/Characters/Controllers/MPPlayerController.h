@@ -15,8 +15,14 @@ public:
 protected:
 	virtual void SetupInputComponent() override;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widgets")
+	TSubclassOf<class UPlayerHUDWidget> PlayerHUDWidgetClass;
+
 private:
 	TSoftObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
+	UPlayerHUDWidget* PlayerHUDWidget = nullptr;
+
+	void CreateAndInitializeWidgets();
 
 	void MoveForward(float Value);
 	void MoveRight(float Value);

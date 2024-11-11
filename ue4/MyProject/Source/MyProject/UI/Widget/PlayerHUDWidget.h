@@ -11,8 +11,12 @@ class MYPROJECT_API UPlayerHUDWidget : public UUserWidget
 	
 public:
 	class UPlayerAttributesWidget* GetPlayetAttributesWidget();
+	class UReticleWidget* GetReticleWidget();
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
 	FName PlayetAttributesWidgetName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Widget names")
+	FName ReticleWidgetName;
 };

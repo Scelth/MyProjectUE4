@@ -118,29 +118,32 @@ void UMPCharacterAttributesComponent::UpdateOxygenValue(float DeltaTime)
 		return;
 	}
 
-	if (!IsSwimmingUnderWater())
+	if (CachedBaseCharacterOwner->GetBaseCharacterMovementComponent()->IsSwimming())
 	{
-		Oxygen = FMath::Clamp(Oxygen + SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
-
-		if (Oxygen >= MaxOxygen)
+		if (!IsSwimmingUnderWater())
 		{
-			Oxygen = MaxOxygen;
-		}
-	}
+			Oxygen = FMath::Clamp(Oxygen + SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
 
-	else if (IsSwimmingUnderWater())
-	{
-		Oxygen = FMath::Clamp(Oxygen - SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
-
-		if (Oxygen <= 0.f)
-		{
-			Oxygen = 0.f;
-
-			if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
+			if (Oxygen >= MaxOxygen)
 			{
-				LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
+				Oxygen = MaxOxygen;
+			}
+		}
 
-				OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
+		else if (IsSwimmingUnderWater())
+		{
+			Oxygen = FMath::Clamp(Oxygen - SwimOxygenConsumptionVelocity * DeltaTime, 0.f, MaxOxygen);
+
+			if (Oxygen <= 0.f)
+			{
+				Oxygen = 0.f;
+
+				if (GetWorld()->GetTimeSeconds() - LastOxygenDamageTime >= OxygenDamageInterval)
+				{
+					LastOxygenDamageTime = GetWorld()->GetTimeSeconds();
+
+					OnTakeAnyDamage(CachedBaseCharacterOwner->GetOwner(), OxygenOutDamage, nullptr, nullptr, nullptr);
+				}
 			}
 		}
 	}
