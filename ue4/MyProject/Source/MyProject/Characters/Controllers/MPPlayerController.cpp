@@ -40,6 +40,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AMPPlayerController::StopAiming);
 	InputComponent->BindAction("NextItem", EInputEvent::IE_Released, this, &AMPPlayerController::NextItem);
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Released, this, &AMPPlayerController::PreviousItem);
+	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AMPPlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AMPPlayerController::Reload);
 }
 
@@ -230,6 +231,14 @@ void AMPPlayerController::PreviousItem()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->PreviousItem();
+	}
+}
+
+void AMPPlayerController::EquipPrimaryItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->EquipPrimaryItem();
 	}
 }
 

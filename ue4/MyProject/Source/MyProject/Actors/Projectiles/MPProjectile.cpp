@@ -19,4 +19,8 @@ void AMPProjectile::LaunchProjectile(FVector Direction)
 	ProjectileMovementComponent->Velocity = Direction * ProjectileMovementComponent->InitialSpeed;
 
 	CollisionComponent->IgnoreActorWhenMoving(GetOwner(), true);
+
+	OnProjectileLaunched();
 }
+
+void AMPProjectile::OnProjectileLaunched() { }

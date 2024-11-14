@@ -9,6 +9,7 @@ typedef TArray<int32, TInlineAllocator<(uint32)EAmunitionType::MAX>> TAmunitionA
 typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::MAX>> TItemsArray;
 
 class ARangeWeaponItem;
+class AThrowableItem;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class MYPROJECT_API UCharacterEquipmentComponent : public UActorComponent
@@ -31,6 +32,8 @@ public:
 	void EquipNextItem();
 	void EquipPreviousItem();
 
+	void LaunchCurrentThrowableItem();
+
 	bool IsEquipping() const { return bIsEquipping; }
 
 protected:
@@ -46,25 +49,31 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLoadout;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TSet<EEquipmentSlots> IgnoreSlotsWhileSwitching;
+
 	virtual void BeginPlay() override;
 
 private:
+	bool bIsEquipping = false;
+
 	TAmunitionArray AmunitionArray;
 	TItemsArray ItemsArray;
 
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
 
 	EEquipmentSlots CurrentEquippedSlot;
+	EEquipmentSlots PreviousEquippedSlot;
 
 	FDelegateHandle OnCurrentWeaponAmmoChangedHandle;
 	FDelegateHandle OnCurrentWeaponReloadedHandle;
 
-	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
-	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
+	AThrowableItem* CurrentThrowableItem;
 
 	FTimerHandle EquipTimer;
 
-	bool bIsEquipping = false;
+	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
+	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
 
 	void CreateLoadout();
 	void EquipAnimationFinished();

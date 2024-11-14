@@ -5,6 +5,8 @@
 #include "MyProject/MPTypes.h"
 #include "EquipableItem.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEquipmentStateChanged, bool, bIsEquipped);
+
 class UAnimMontage;
 
 UCLASS(Abstract, NotBlueprintable)
@@ -20,7 +22,13 @@ public:
 	FName GetUnequippedSocketName() const { return UnequippedSocketName; }
 	FName GetEquippedSocketName() const { return EquippedSocketName; }
 
+	virtual void Equip();
+	virtual void Unequip();
+
 protected:
+	UPROPERTY(BlueprintAssignable)
+	FOnEquipmentStateChanged OnEquipementStateChangedEvent;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Equipable Item")
 	EEquipableItemType ItemType = EEquipableItemType::None;
 

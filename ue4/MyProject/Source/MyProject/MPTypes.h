@@ -16,6 +16,7 @@ const FName PawnHeadBone = FName("head");
 const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForeGrip = FName("ForeGripSocket");
+const FName SocketCharacterThrowable = FName("ThrowableSocket");
 
 const FName CollisionProfileRagdoll = FName("Ragdoll");
 
@@ -26,7 +27,8 @@ enum class EEquipableItemType : uint8
 {
 	None,
 	Pistol,
-	Rifle
+	Rifle,
+	Throwable
 };
 
 UENUM(BlueprintType)
@@ -46,5 +48,6 @@ enum class EEquipmentSlots : uint8
 	SideArm,
 	PrimaryWeapon,
 	SecondaryWeapon,
+	PrimaryItemSlot,
 	MAX UMETA(Hidden)
 };

@@ -44,5 +44,6 @@ private:
 	void StopAiming();
 	void NextItem();
 	void PreviousItem();
+	void EquipPrimaryItem();
 	void Reload();
 };

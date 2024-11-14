@@ -30,6 +30,11 @@ void AMPBaseCharacter::PreviousItem()
 	CharacterEquipmentComponent->EquipPreviousItem();
 }
 
+void AMPBaseCharacter::EquipPrimaryItem()
+{
+	CharacterEquipmentComponent->EquipItemInSlot(EEquipmentSlots::PrimaryItemSlot);
+}
+
 void AMPBaseCharacter::ReloadCurrentRangeWeapon()
 {
 	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
