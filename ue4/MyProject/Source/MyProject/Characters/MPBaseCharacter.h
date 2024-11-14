@@ -34,8 +34,6 @@ struct FMantlingSettings
 	float MinHeightStartTime = 0.5f;
 };
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnAimingStateChanged, bool)
-
 class UMPBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
 class UMPCharacterAttributesComponent;
@@ -46,6 +44,8 @@ class MYPROJECT_API AMPBaseCharacter : public ACharacter
 	GENERATED_BODY()
 
 public:
+	TMulticastDelegate<void(bool)> OnAimingStateChangedEvent;
+
 	AMPBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void MoveForward(float Value) {}
@@ -77,7 +77,10 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
-	FOnAimingStateChanged OnAimingStateChangedEvent;
+	void NextItem();
+	void PreviousItem();
+
+	void ReloadCurrentRangeWeapon();
 
 	virtual void SwimForward(float Value) {}
 	virtual void SwimRight(float Value) {}

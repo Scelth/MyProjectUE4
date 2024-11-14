@@ -19,10 +19,32 @@ const FName SocketWeaponForeGrip = FName("ForeGripSocket");
 
 const FName CollisionProfileRagdoll = FName("Ragdoll");
 
+const FName SectionMontageEndReload = FName("EndReload");
+
 UENUM(BlueprintType)
 enum class EEquipableItemType : uint8
 {
 	None,
 	Pistol,
 	Rifle
+};
+
+UENUM(BlueprintType)
+enum class EAmunitionType : uint8
+{
+	none,
+	Pistol,
+	Rifle,
+	ShotgunShells,
+	MAX UMETA(Hidden)
+};
+
+UENUM(BlueprintType)
+enum class EEquipmentSlots : uint8
+{
+	None,
+	SideArm,
+	PrimaryWeapon,
+	SecondaryWeapon,
+	MAX UMETA(Hidden)
 };

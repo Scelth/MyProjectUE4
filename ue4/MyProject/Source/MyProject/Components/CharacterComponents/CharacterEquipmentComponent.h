@@ -5,7 +5,8 @@
 #include "MyProject/MPTypes.h"
 #include "CharacterEquipmentComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCurrentWeaponAmmoChanged, int32)
+typedef TArray<int32, TInlineAllocator<(uint32)EAmunitionType::MAX>> TAmunitionArray;
+typedef TArray<class AEquipableItem*, TInlineAllocator<(uint32)EEquipmentSlots::MAX>> TItemsArray;
 
 class ARangeWeaponItem;
 
@@ -19,22 +20,60 @@ public:
 
 	ARangeWeaponItem* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
 
-	FOnCurrentWeaponAmmoChanged OnCurrentWeaponAmmoChangedEvent;
+	TMulticastDelegate<void(int32, int32)> OnCurrentWeaponAmmoChangedEvent;
+
+	void ReloadCurrentWeapon();
+	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
+
+	void EquipItemInSlot(EEquipmentSlots Slot);
+	void AttachCurrentItemToEquippedSocket();
+	void UnequipCurrentItem();
+	void EquipNextItem();
+	void EquipPreviousItem();
+
+	bool IsEquipping() const { return bIsEquipping; }
 
 protected:
-	virtual void BeginPlay() override;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
-	TSubclassOf<ARangeWeaponItem> SideArmClass;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	UPROPERTY()
 	ARangeWeaponItem* CurrentEquippedWeapon;
 
+	UPROPERTY()
+	AEquipableItem* CurrentEquippedItem;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TMap<EAmunitionType, int32> MaxAmunitionAmount;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
+	TMap<EEquipmentSlots, TSubclassOf<class AEquipableItem>> ItemsLoadout;
+
+	virtual void BeginPlay() override;
+
 private:
+	TAmunitionArray AmunitionArray;
+	TItemsArray ItemsArray;
+
+	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
+
+	EEquipmentSlots CurrentEquippedSlot;
+
+	FDelegateHandle OnCurrentWeaponAmmoChangedHandle;
+	FDelegateHandle OnCurrentWeaponReloadedHandle;
+
+	uint32 NextItemsArraySlotIndex(uint32 CurrentSlotIndex);
+	uint32 PreviousItemsArraySlotIndex(uint32 CurrentSlotIndex);
+
+	FTimerHandle EquipTimer;
+
+	bool bIsEquipping = false;
+
 	void CreateLoadout();
+	void EquipAnimationFinished();
 	
+	UFUNCTION()
+	void OnWeaponReloadComplete();
+
 	UFUNCTION()
 	void OnCurrentWeaponAmmoChanged(int32 Ammo);
 
-	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;
+	int32 GetAvailableAmunitionForCurrentWeapon();
 };

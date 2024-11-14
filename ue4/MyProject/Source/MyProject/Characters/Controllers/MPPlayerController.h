@@ -38,8 +38,11 @@ private:
 	void Jump();
 	void StartSprint();
 	void StopSprint();
-	void PlayerStartFire();
-	void PlayerStopFire();
+	void PlayerStartAttack();
+	void PlayerStopAttack();
 	void StartAiming();
 	void StopAiming();
+	void NextItem();
+	void PreviousItem();
+	void Reload();
 };

@@ -12,22 +12,25 @@ ARangeWeaponItem::ARangeWeaponItem()
 
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
+
+	EquippedSocketName = SocketCharacterWeapon;
 }
 
 void ARangeWeaponItem::StartFire()
 {
-	MakeShot();
-
-	if (WeaponFireMode == EWeaponFireMode::FullAuto)
+	if (GetWorld()->GetTimerManager().IsTimerActive(ShotTimer))
 	{
-		StopFire();
-		GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeaponItem::MakeShot, GetShotTimerInterval(), true);
+		return;
 	}
+
+	bIsFiring = true;
+
+	MakeShot();
 }
 
 void ARangeWeaponItem::StopFire()
 {
-	GetWorld()->GetTimerManager().ClearTimer(ShotTimer);
+	bIsFiring = false;
 }
 
 void ARangeWeaponItem::StartAim()
@@ -38,6 +41,76 @@ void ARangeWeaponItem::StartAim()
 void ARangeWeaponItem::StopAim()
 {
 	bIsAiming = false;
+}
+
+void ARangeWeaponItem::StartReload()
+{
+	checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("ARangeWeaponItem::StartReload() only character can be an owner of range weapon"));
+	AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
+
+	bIsReloading = true;
+
+	if (IsValid(CharacterReloadMontage))
+	{
+		float MontageDuration = CharacterOwner->PlayAnimMontage(CharacterReloadMontage);
+
+		PlayAnimMontage(WeaponReloadMontage);
+
+		if (ReloadType == EReloadType::FullClip)
+		{
+			GetWorld()->GetTimerManager().SetTimer(ReloadTimer, [this]() { EndReload(true); }, MontageDuration, false);
+		}
+	}
+
+	else
+	{
+		EndReload(true);
+	}
+}
+
+void ARangeWeaponItem::EndReload(bool bIsSuccess)
+{
+	if (!bIsReloading)
+	{
+		return;
+	}
+
+	if (!bIsSuccess)
+	{
+		checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("ARangeWeaponItem::StartReload() only character can be an owner of range weapon"));
+		AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
+
+		CharacterOwner->StopAnimMontage(CharacterReloadMontage);
+
+		StopAnimMontage(WeaponReloadMontage, false);
+	}
+
+	if (ReloadType == EReloadType::ByBullet)
+	{
+		AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
+		UAnimInstance* CharacterAnimInstance = CharacterOwner->GetMesh()->GetAnimInstance();
+
+		if (IsValid(CharacterAnimInstance))
+		{
+			CharacterAnimInstance->Montage_JumpToSection(SectionMontageEndReload, CharacterReloadMontage);
+		}
+
+		UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
+
+		if (IsValid(WeaponAnimInstance))
+		{
+			WeaponAnimInstance->Montage_JumpToSection(SectionMontageEndReload, WeaponReloadMontage);
+		}
+	}
+
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimer);
+
+	bIsReloading = false;
+
+	if (bIsSuccess && OnReloadCompleteEvent.IsBound())
+	{
+		OnReloadCompleteEvent.Broadcast();
+	}
 }
 
 void ARangeWeaponItem::SetAmmo(int32 NewAmmo)
@@ -77,6 +150,16 @@ float ARangeWeaponItem::PlayAnimMontage(UAnimMontage* AnimMontage)
 	return Result;
 }
 
+void ARangeWeaponItem::StopAnimMontage(UAnimMontage* AnimMontage, float BlendOutTime)
+{
+	UAnimInstance* WeaponAnimInstance = WeaponMesh->GetAnimInstance();
+
+	if (IsValid(WeaponAnimInstance))
+	{
+		WeaponAnimInstance->Montage_Stop(BlendOutTime, AnimMontage);
+	}
+}
+
 void ARangeWeaponItem::MakeShot()
 {
 	checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("ARangeWeaponItem::Attack() only character can be an owner of range weapon"));
@@ -85,8 +168,16 @@ void ARangeWeaponItem::MakeShot()
 	if (!CanShoot())
 	{
 		StopFire();
+
+		if (Ammo == 0 && bIsAutoReload)
+		{
+			CharacterOwner->ReloadCurrentRangeWeapon();
+		}
+
 		return;
 	}
+
+	EndReload(false);
 
 	CharacterOwner->PlayAnimMontage(CharacterFireMontage);
 	PlayAnimMontage(WeaponFireMontage);
@@ -104,21 +195,33 @@ void ARangeWeaponItem::MakeShot()
 	Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
 
 	FVector PlayerViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
-	PlayerViewDirection += GetBulletSpreadOffset(FMath::RandRange(0.f, GetCurrentBulletSpreadAngle()), PlayerViewRotation);
 
 	SetAmmo(Ammo - 1);
 
-	WeaponBarell->Shot(PlayerViewPoint, PlayerViewDirection, Controller);
+	WeaponBarell->Shot(PlayerViewPoint, PlayerViewDirection, Controller, GetCurrentBulletSpreadAngle());
+
+	GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeaponItem::OnShotTimerElapsed, GetShotTimerInterval(), false);
 }
 
-FVector ARangeWeaponItem::GetBulletSpreadOffset(float Angle, FRotator ShotRotation) const
+void ARangeWeaponItem::OnShotTimerElapsed()
 {
-	float SpreadSize = FMath::Tan(Angle);
-	float RotationAngle = FMath::RandRange(0.f, 2 * PI);
-	float SpreadY = FMath::Cos(RotationAngle);
-	float SpreadZ = FMath::Sin(RotationAngle);
+	if (!bIsFiring)
+	{
+		return;
+	}
 
-	FVector Result = (ShotRotation.RotateVector(FVector::UpVector) * SpreadZ + ShotRotation.RotateVector(FVector::RightVector) * SpreadY) * SpreadSize;
+	switch (WeaponFireMode)
+	{
+		case EWeaponFireMode::Single:
+		{
+			StopFire();
+			break;
+		}
 
-	return Result;
+		case EWeaponFireMode::FullAuto:
+		{
+			MakeShot();
+			break;
+		}
+	}
 }

@@ -92,4 +92,6 @@ private:
 	FMantlingMovementParameters CurrentMantlingParameters;
 
 	FTimerHandle MantlingTimer;
+
+	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation) const;
 };

@@ -30,7 +30,7 @@ class MYPROJECT_API UWeaponBarellComponent : public USceneComponent
 	GENERATED_BODY()
 
 public:	
-	void Shot(FVector ShotStart, FVector ShotDirection, AController* Contoller);
+	void Shot(FVector ShotStart, FVector ShotDirection, AController* Contoller, float SpreadAngle);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes")
@@ -38,6 +38,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Damage")
 	float DamageAmount = 20.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes", meta = (ClampMin = 1, UIMin = 1))
+	int32 BulletsPerShot = 1;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | VFX")
 	UNiagaraSystem* MuzzleFlashFX;
@@ -51,6 +54,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Decals")
 	FDecalInfo DefaultDecalInfo;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Damage")
+	TSubclassOf<class UDamageType> DamageTypeClass;
+
+private:
 	float DamageMultiplier = 1.f;
 	float DecalFadeOutScreenSize = 0.0001f;
+
+	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation) const;
 };

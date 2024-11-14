@@ -34,10 +34,13 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AMPPlayerController::StopSprint);
 	InputComponent->BindAction("Prone", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeProneState);
-	InputComponent->BindAction("Attack", EInputEvent::IE_Pressed, this, &AMPPlayerController::PlayerStartFire);
-	InputComponent->BindAction("Attack", EInputEvent::IE_Released, this, &AMPPlayerController::PlayerStopFire);
+	InputComponent->BindAction("Attack", EInputEvent::IE_Pressed, this, &AMPPlayerController::PlayerStartAttack);
+	InputComponent->BindAction("Attack", EInputEvent::IE_Released, this, &AMPPlayerController::PlayerStopAttack);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartAiming);
 	InputComponent->BindAction("Aim", EInputEvent::IE_Released, this, &AMPPlayerController::StopAiming);
+	InputComponent->BindAction("NextItem", EInputEvent::IE_Released, this, &AMPPlayerController::NextItem);
+	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Released, this, &AMPPlayerController::PreviousItem);
+	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AMPPlayerController::Reload);
 }
 
 void AMPPlayerController::CreateAndInitializeWidgets()
@@ -182,7 +185,7 @@ void AMPPlayerController::StopSprint()
 	}
 }
 
-void AMPPlayerController::PlayerStartFire()
+void AMPPlayerController::PlayerStartAttack()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
@@ -190,7 +193,7 @@ void AMPPlayerController::PlayerStartFire()
 	}
 }
 
-void AMPPlayerController::PlayerStopFire()
+void AMPPlayerController::PlayerStopAttack()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
@@ -211,5 +214,29 @@ void AMPPlayerController::StopAiming()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->StopAiming();
+	}
+}
+
+void AMPPlayerController::NextItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->NextItem();
+	}
+}
+
+void AMPPlayerController::PreviousItem()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->PreviousItem();
+	}
+}
+
+void AMPPlayerController::Reload()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ReloadCurrentRangeWeapon();
 	}
 }

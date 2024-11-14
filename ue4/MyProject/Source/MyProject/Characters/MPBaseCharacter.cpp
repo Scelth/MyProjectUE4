@@ -20,6 +20,24 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
 }
 
+void AMPBaseCharacter::NextItem()
+{
+	CharacterEquipmentComponent->EquipNextItem();
+}
+
+void AMPBaseCharacter::PreviousItem()
+{
+	CharacterEquipmentComponent->EquipPreviousItem();
+}
+
+void AMPBaseCharacter::ReloadCurrentRangeWeapon()
+{
+	if (IsValid(CharacterEquipmentComponent->GetCurrentRangeWeapon()))
+	{
+		CharacterEquipmentComponent->ReloadCurrentWeapon();
+	}
+}
+
 void AMPBaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -180,14 +198,21 @@ void AMPBaseCharacter::Mantle()
 
 void AMPBaseCharacter::StartFire()
 {
-	if (!GetBaseCharacterMovementComponent()->IsSprinting() && !GetBaseCharacterMovementComponent()->IsSwimming())
+	if (GetBaseCharacterMovementComponent()->IsSprinting() && !GetBaseCharacterMovementComponent()->IsSwimming())
 	{
-		ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+		return;
+	}
 
-		if (IsValid(CurrentRangeWeapon))
-		{
-			CurrentRangeWeapon->StartFire();
-		}
+	if (CharacterEquipmentComponent->IsEquipping())
+	{
+		return;
+	}
+
+	ARangeWeaponItem* CurrentRangeWeapon = CharacterEquipmentComponent->GetCurrentRangeWeapon();
+
+	if (IsValid(CurrentRangeWeapon))
+	{
+		CurrentRangeWeapon->StartFire();
 	}
 }
 

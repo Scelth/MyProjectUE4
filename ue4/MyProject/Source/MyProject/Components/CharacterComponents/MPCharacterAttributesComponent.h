@@ -4,12 +4,6 @@
 #include "Components/ActorComponent.h"
 #include "MPCharacterAttributesComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnDeathEventChanged);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOutOfStaminaEventChanged, bool);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnHealthChanged, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnStaminaChanged, float);
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnOxygenChanged, float);
-
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class MYPROJECT_API UMPCharacterAttributesComponent : public UActorComponent
 {
@@ -20,11 +14,11 @@ public:
 
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	FOnDeathEventChanged OnDeathChangedEvent;
-	FOutOfStaminaEventChanged OnOutOfStaminaChangedEvent;
-	FOnHealthChanged OnHealthChangedEvent;
-	FOnStaminaChanged OnStaminaChangedEvent;
-	FOnOxygenChanged OnOxygenChangedEvent;
+	TMulticastDelegate<void()> OnDeathChangedEvent;
+	TMulticastDelegate<void(bool)> OnOutOfStaminaChangedEvent;
+	TMulticastDelegate<void(float)> OnHealthChangedEvent;
+	TMulticastDelegate<void(float)> OnStaminaChangedEvent;
+	TMulticastDelegate<void(float)> OnOxygenChangedEvent;
 
 	bool IsAlive() { return Health > 0.f; }
 
