@@ -12,6 +12,8 @@ class MYPROJECT_API AThrowableItem : public AEquipableItem
 public:
 	void Throw();
 
+	EAmunitionType GetAmunitionType() const { return AmmunitionType; }
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Throwables")
 	TSubclassOf<class AMPProjectile> ProjectileClass;
@@ -21,4 +23,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Throwables", meta = (UIMin = -90.f, UIMax = 90.f, ClampMin = -90.f, ClampMax = 90.f))
 	float ThrowAngleX = 0.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Throwables", meta = (ClampMin = 0, UIMin = 0))
+	EAmunitionType AmmunitionType;
 };

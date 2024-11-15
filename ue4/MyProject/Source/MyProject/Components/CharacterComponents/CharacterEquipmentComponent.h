@@ -20,8 +20,9 @@ public:
 	EEquipableItemType GetCurrentEquippedItemType() const;
 
 	ARangeWeaponItem* GetCurrentRangeWeapon() const { return CurrentEquippedWeapon; }
+	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
 
-	TMulticastDelegate<void(int32, int32)> OnCurrentWeaponAmmoChangedEvent;
+	TMulticastDelegate<void(int32, int32, int32)> OnCurrentWeaponAmmoChangedEvent;
 
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
@@ -37,6 +38,9 @@ public:
 	bool IsEquipping() const { return bIsEquipping; }
 
 protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Throwable | Ammo", meta = (UIMin = 0, ClampMin = 0))
+	int32 MaxGrenade = 5;
+
 	UPROPERTY()
 	ARangeWeaponItem* CurrentEquippedWeapon;
 
@@ -85,4 +89,5 @@ private:
 	void OnCurrentWeaponAmmoChanged(int32 Ammo);
 
 	int32 GetAvailableAmunitionForCurrentWeapon();
+	int32 GetAvailableThrowables();
 };

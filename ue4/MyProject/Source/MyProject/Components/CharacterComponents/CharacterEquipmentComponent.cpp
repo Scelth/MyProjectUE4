@@ -162,9 +162,18 @@ void UCharacterEquipmentComponent::EquipPreviousItem()
 
 void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
 {
+	int32 AvailableGrenades = AmunitionArray[(uint32)EAmunitionType::FragGrenades];
+
+	if (AvailableGrenades <= 0)
+	{
+		return;
+	}
+
 	if (IsValid(CurrentThrowableItem))
 	{
 		CurrentThrowableItem->Throw();
+
+		AmunitionArray[(uint32)EAmunitionType::FragGrenades] -= 1;
 
 		bIsEquipping = false;
 
@@ -216,6 +225,8 @@ void UCharacterEquipmentComponent::CreateLoadout()
 		AmunitionArray[(uint32)AmmoPair.Key] = FMath::Max(AmmoPair.Value, 0);
 	}
 
+	AmunitionArray[(uint32)EAmunitionType::FragGrenades] = MaxGrenade;
+
 	ItemsArray.AddZeroed((uint32)EEquipmentSlots::MAX);
 
 	for (const TPair<EEquipmentSlots, TSubclassOf<AEquipableItem>>& ItemPair : ItemsLoadout)
@@ -247,6 +258,11 @@ int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 	return AmunitionArray[(uint32)GetCurrentRangeWeapon()->GetAmunitionType()];
 }
 
+int32 UCharacterEquipmentComponent::GetAvailableThrowables()
+{
+	return AmunitionArray[(uint32)EAmunitionType::FragGrenades];
+}
+
 void UCharacterEquipmentComponent::OnWeaponReloadComplete()
 {
 	ReloadAmmoInCurrentWeapon();
@@ -256,6 +272,6 @@ void UCharacterEquipmentComponent::OnCurrentWeaponAmmoChanged(int32 Ammo)
 {
 	if (OnCurrentWeaponAmmoChangedEvent.IsBound())
 	{
-		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo, GetAvailableAmunitionForCurrentWeapon());
+		OnCurrentWeaponAmmoChangedEvent.Broadcast(Ammo, GetAvailableAmunitionForCurrentWeapon(), GetAvailableThrowables());
 	}
 }
