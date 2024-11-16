@@ -78,6 +78,7 @@ void AMPPlayerController::CreateAndInitializeWidgets()
 		{
 			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
 			CharacterEquipment->OnCurrentWeaponAmmoChangedEvent.AddUFunction(AmmoWidget, FName("UpdateAmmoCount"));
+			CharacterEquipment->OnCurrentThrowableCountChangedEvent.AddUFunction(AmmoWidget, FName("UpdateThrowablesCount"));
 		}
 	}
 }

@@ -34,7 +34,7 @@ enum class EEquipableItemType : uint8
 UENUM(BlueprintType)
 enum class EAmunitionType : uint8
 {
-	none,
+	None,
 	Pistol,
 	Rifle,
 	ShotgunShells,

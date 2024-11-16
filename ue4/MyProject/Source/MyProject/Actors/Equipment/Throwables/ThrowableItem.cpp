@@ -4,6 +4,11 @@
 
 void AThrowableItem::Throw()
 {
+    if (GetThrowableCount() == 0)
+    {
+        return;
+    }
+
     checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("AThrowableItem::Throw() only character can be an owner of range throwables"));
     AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
 
@@ -22,10 +27,10 @@ void AThrowableItem::Throw()
 
     FVector PlayerViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
     FVector ViewUpVector = PlayerViewRotation.RotateVector(FVector::UpVector);
-    FVector LaunchDirection = PlayerViewDirection + FMath::Tan(FMath::RadiansToDegrees(ThrowAngleY)) * ViewUpVector;
+    FVector LaunchDirection = PlayerViewDirection + FMath::Tan(FMath::RadiansToDegrees(ThrowAngle)) * ViewUpVector;
     FVector ThorwableSocketLocation = CharacterOwner->GetMesh()->GetSocketLocation(SocketCharacterThrowable);
     FVector SocketInViewSpace = PlayerViewTransform.InverseTransformPosition(ThorwableSocketLocation);
-    FVector SpawnLocation = PlayerViewPoint + PlayerViewDirection * SocketInViewSpace.X + PlayerViewDirection.RightVector * ThrowAngleX;
+    FVector SpawnLocation = PlayerViewPoint + PlayerViewDirection * SocketInViewSpace.X + PlayerViewDirection.RightVector * ThrowOffsetX;
 
     AMPProjectile* Projectile = GetWorld()->SpawnActor<AMPProjectile>(ProjectileClass, SpawnLocation, FRotator::ZeroRotator);
 
@@ -33,5 +38,15 @@ void AThrowableItem::Throw()
     {
         Projectile->SetOwner(GetOwner());
         Projectile->LaunchProjectile(LaunchDirection.GetSafeNormal());
+    }
+}
+
+void AThrowableItem::SetThrowableCount(int32 NewThrowableCount)
+{
+    ThrowableCount = NewThrowableCount;
+
+    if (OnThrowableCountChangedEvent.IsBound())
+    {
+        OnThrowableCountChangedEvent.Broadcast(ThrowableCount);
     }
 }
