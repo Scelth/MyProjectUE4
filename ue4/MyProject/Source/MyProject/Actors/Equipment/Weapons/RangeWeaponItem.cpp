@@ -14,6 +14,8 @@ ARangeWeaponItem::ARangeWeaponItem()
 	WeaponBarell->SetupAttachment(WeaponMesh, SocketWeaponMuzzle);
 
 	EquippedSocketName = SocketCharacterWeapon;
+
+	ReticleType = EReticleType::Default;
 }
 
 void ARangeWeaponItem::StartFire()
@@ -123,6 +125,11 @@ void ARangeWeaponItem::SetAmmo(int32 NewAmmo)
 	}
 }
 
+EReticleType ARangeWeaponItem::GetReticleType() const
+{
+	return bIsAiming ? AimReticleType : ReticleType;
+}
+
 void ARangeWeaponItem::BeginPlay()
 {
 	Super::BeginPlay();
@@ -198,7 +205,7 @@ void ARangeWeaponItem::MakeShot()
 
 	SetAmmo(Ammo - 1);
 
-	WeaponBarell->Shot(PlayerViewPoint, PlayerViewDirection, Controller, GetCurrentBulletSpreadAngle());
+	WeaponBarell->Shot(PlayerViewPoint, PlayerViewDirection, GetCurrentBulletSpreadAngle());
 
 	GetWorld()->GetTimerManager().SetTimer(ShotTimer, this, &ARangeWeaponItem::OnShotTimerElapsed, GetShotTimerInterval(), false);
 }

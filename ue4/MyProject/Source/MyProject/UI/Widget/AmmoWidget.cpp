@@ -1,5 +1,4 @@
 #include "AmmoWidget.h"
-#include "MyProject/MPTypes.h"
 
 void UAmmoWidget::UpdateAmmoCount(int32 NewAmmo, int32 NewTotalAmmo)
 {

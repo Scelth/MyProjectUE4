@@ -24,6 +24,7 @@ public:
 
 	TMulticastDelegate<void(int32, int32)> OnCurrentWeaponAmmoChangedEvent;
 	TMulticastDelegate<void(int32)> OnCurrentThrowableCountChangedEvent;
+	TMulticastDelegate<void(const AEquipableItem*)> OnCurrentEquippedItemChangedEvent;
 
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);

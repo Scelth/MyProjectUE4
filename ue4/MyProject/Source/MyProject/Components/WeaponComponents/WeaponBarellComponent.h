@@ -22,6 +22,13 @@ struct FDecalInfo
 	float DecalFadeOutTime = 5.f;
 };
 
+UENUM(BlueprintType)
+enum class EHitRegistrationType : uint8
+{
+	HitScan,
+	Projectile
+};
+
 class UNiagaraSystem;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -30,7 +37,7 @@ class MYPROJECT_API UWeaponBarellComponent : public USceneComponent
 	GENERATED_BODY()
 
 public:	
-	void Shot(FVector ShotStart, FVector ShotDirection, AController* Contoller, float SpreadAngle);
+	void Shot(FVector ShotStart, FVector ShotDirection, float SpreadAngle);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes")
@@ -41,6 +48,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes", meta = (ClampMin = 1, UIMin = 1))
 	int32 BulletsPerShot = 1;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Hit Registration")
+	EHitRegistrationType HitRegistrationType = EHitRegistrationType::HitScan;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | Hit Registration", meta = (EditCondition = "HitRegistrationType == EHitRegistrationType::Projectile"))
+	TSubclassOf<class AMPProjectile> ProjectileClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Barell Attributes | VFX")
 	UNiagaraSystem* MuzzleFlashFX;
@@ -61,5 +74,15 @@ private:
 	float DamageMultiplier = 1.f;
 	float DecalFadeOutScreenSize = 0.0001f;
 
+	UFUNCTION()
+	void ProcessHit(const FHitResult& HitResult, const FVector& Direction/*, const FVector& ShotStart, const FVector& ShotEnd*/);
+	void LaunchProjectile(const FVector& LaunchStart, const FVector& LaunchDirection);
+
+	bool HitScan(const FVector& ShotStart, OUT FVector& ShotEnd, const FVector& ShotDirection);
+
 	FVector GetBulletSpreadOffset(float Angle, FRotator ShotRotation) const;
+
+	APawn* GetOwningPawn() const;
+
+	AController* GetController() const;
 };

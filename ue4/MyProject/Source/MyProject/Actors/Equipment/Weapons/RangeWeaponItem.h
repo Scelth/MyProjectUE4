@@ -39,15 +39,17 @@ public:
 	float GetAimTurnModifier() const { return AimTurnModifier; }
 	float GetAimLookUpModifier() const { return AimLookUpModifier; }
 
-	int32 GetAmmo() const { return Ammo; }
-	int32 GetMaxAmmo() const { return MaxAmmo; }
-
 	void StartReload();
 	void EndReload(bool bIsSuccess);
 
 	void SetAmmo(int32 NewAmmo);
 
 	bool CanShoot() const { return Ammo > 0; }
+
+	virtual EReticleType GetReticleType() const;
+
+	int32 GetAmmo() const { return Ammo; }
+	int32 GetMaxAmmo() const { return MaxAmmo; }
 
 	FTransform GetForeGripTransform() const { return WeaponMesh->GetSocketTransform(SocketWeaponForeGrip); }
 	EAmunitionType GetAmunitionType() const { return AmmoType; }
@@ -86,6 +88,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Ammo", meta = (ClampMin = 1, UIMin = 1))
 	EAmunitionType AmmoType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon |Reticle")
+	EReticleType AimReticleType = EReticleType::Default;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters", meta = (ClampMin = 1.f, UIMin = 1.f))
 	float RateOfFire = 600.f;

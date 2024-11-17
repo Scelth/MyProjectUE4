@@ -141,6 +141,11 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 
 		OnCurrentThrowableCountChanged(CurrentThrowableItem->GetThrowableCount());
 	}
+
+	if (OnCurrentEquippedItemChangedEvent.IsBound())
+	{
+		OnCurrentEquippedItemChangedEvent.Broadcast(CurrentEquippedItem);
+	}
 }
 
 void UCharacterEquipmentComponent::AttachCurrentItemToEquippedSocket()

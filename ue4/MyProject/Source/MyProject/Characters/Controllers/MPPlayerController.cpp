@@ -65,6 +65,9 @@ void AMPPlayerController::CreateAndInitializeWidgets()
 		if (IsValid(ReticleWidget))
 		{
 			CachedBaseCharacter->OnAimingStateChangedEvent.AddUFunction(ReticleWidget, FName("OnAimingStateChanged"));
+
+			UCharacterEquipmentComponent* CharacterEquipment = CachedBaseCharacter->GetCharacterEquipmentComponent_Mutable();
+			CharacterEquipment->OnCurrentEquippedItemChangedEvent.AddUFunction(ReticleWidget, FName("OnEquippedItemChanged"));
 		}
 
 		if (IsValid(PlayerAttributesWidget))

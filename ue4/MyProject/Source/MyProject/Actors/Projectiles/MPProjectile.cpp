@@ -14,6 +14,13 @@ AMPProjectile::AMPProjectile()
 	ProjectileMovementComponent->InitialSpeed = 2000.f;
 }
 
+void AMPProjectile::BeginPlay()
+{
+	Super::BeginPlay();
+
+	CollisionComponent->OnComponentHit.AddDynamic(this, &AMPProjectile::OnCollisionHit);
+}
+
 void AMPProjectile::LaunchProjectile(FVector Direction)
 {
 	ProjectileMovementComponent->Velocity = Direction * ProjectileMovementComponent->InitialSpeed;
@@ -24,3 +31,11 @@ void AMPProjectile::LaunchProjectile(FVector Direction)
 }
 
 void AMPProjectile::OnProjectileLaunched() { }
+
+void AMPProjectile::OnCollisionHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OnProjectileHit.IsBound())
+	{
+		OnProjectileHit.Broadcast(Hit, ProjectileMovementComponent->Velocity.GetSafeNormal());
+	}
+}
