@@ -31,10 +31,16 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsProning = CharacterMovement->IsProning();
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
 	bIsSwimming = CharacterMovement->IsSwimming();
+	bIsOnLadder = CharacterMovement->IsOnLadder();
 
-	bIsAiming = CachedBaseCharacter->IsAiming();
+	if (bIsOnLadder)
+	{
+		LadderSpeedRatio = CharacterMovement->GetLadderSpeedRation();
+	}
 	
 	bIsStrafing = !CharacterMovement->bOrientRotationToMovement;
+
+	bIsAiming = CachedBaseCharacter->IsAiming();
 
 	IKRightFootOffset = FVector((CachedBaseCharacter->GetIKRightFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);
 	IKLeftFootOffset = FVector(-(CachedBaseCharacter->GetIKLeftFootOffset() + CachedBaseCharacter->GetIKPelvisOffset()), 0.0f, 0.0f);

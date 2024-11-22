@@ -24,6 +24,7 @@ private:
 
 	void CreateAndInitializeWidgets();
 
+	// Axis
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 	void Turn(float Value);
@@ -31,7 +32,9 @@ private:
 	void SwimForward(float Value);
 	void SwimRight(float Value);
 	void SwimUp(float Value);
+	void ClimbLadderUp(float Value);
 
+	// Action
 	void ChangeCrouchState();
 	void ChangeProneState();
 	void Mantle();
@@ -46,4 +49,6 @@ private:
 	void PreviousItem();
 	void EquipPrimaryItem();
 	void Reload();
+	void FiringMode();
+	void InteractWithLadder();
 };

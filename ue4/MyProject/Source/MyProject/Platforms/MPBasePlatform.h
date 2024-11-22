@@ -20,29 +20,48 @@ class MYPROJECT_API AMPBasePlatform : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AMPBasePlatform();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UCurveFloat* TimelineCurve;
-
 protected:
+    FTimeline PlatformTimeline;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UStaticMeshComponent* PlatformMesh;
+
+    UPROPERTY(EditInstanceOnly, BlueprintReadOnly, meta = (MakeEditWidget))
+    FVector EndLocation;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
+    FVector StartLocation;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    UCurveFloat* TimelineCurve;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    EPlatformBehavior PlatformBehavior = EPlatformBehavior::OnDemand;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float LoopWaitTime = 1.0f;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
+    bool bIsMovingForward = true;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Timeline", meta = (AllowPrivateAccess = "true"))
+    FTimerHandle LoopWaitTimerHandle;
+
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	void PlatformTimelineUpdate(float DeltaTime);
+    UFUNCTION(BlueprintCallable, Category = "Platform Movement")
+    void MoveForward();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* PlatformMesh;
+    // Function to start moving the platform backward
+    UFUNCTION(BlueprintCallable, Category = "Platform Movement")
+    void MoveBackward();
 
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, meta = (MakeEditWidget))
-	FVector EndLocation;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Transient)
-	FVector StartLocation;
-
-	FTimeline PlatformTimeline;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	EPlatformBehavior PlatformBehavior = EPlatformBehavior::OnDemand;
+private:
+    void PlatformTimelineUpdate(float DeltaTime);
+    void StartLoopMovement();
+    void ReverseLoopMovement();
+    void WaitAtEndpoint();
 };

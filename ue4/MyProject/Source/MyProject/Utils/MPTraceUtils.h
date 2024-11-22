@@ -40,4 +40,15 @@ namespace MPTraceUtils
 		bool bDrawDebug = false,
 		float DrawTime = -1.f,
 		FColor HitColor = FColor::Red);
+
+	bool OverlapCapsuleBlockingByProfile(const UWorld* World,
+		const FVector& Position,
+		float CapsuleRadius,
+		float CapsuleHalfHeight,
+		FQuat Rotation,
+		FName ProfileName,
+		const FCollisionQueryParams& QueryParams,
+		bool bDrawDebug = false,
+		float DrawTime = -1.f,
+		FColor HitColor = FColor::Red);
 }

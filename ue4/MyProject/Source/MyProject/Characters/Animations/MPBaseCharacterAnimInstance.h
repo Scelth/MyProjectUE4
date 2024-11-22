@@ -15,9 +15,7 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	FRotator AimRotation = FRotator::ZeroRotator;
-
+#pragma region Base
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation", meta = (UIMin = 0.f, UIMax = 500.f))
 	float Speed = 0.f;
 
@@ -25,29 +23,44 @@ protected:
 	float Direction = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsFalling = false;
+	bool bIsStrafing = false;
+#pragma endregion
 
+#pragma region Jump
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsCrouching = false;
+	bool bIsFalling = false;
+#pragma endregion
 
+#pragma region Sprint
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsSprinting = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsProning = false;
+	bool bIsOutOfStamina = false;
+#pragma endregion
+
+#pragma region Crouch and Prone
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsCrouching = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsOutOfStamina = false;
+	bool bIsProning = false;
+#pragma endregion
 
+#pragma region Swim
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsSwimming = false;
+#pragma endregion
+	
+#pragma region Ladder
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	float LadderSpeedRatio = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsAiming = false;
+	bool bIsOnLadder = false;	
+#pragma endregion
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
-	bool bIsStrafing = false;
-
+#pragma region Inverse Kinematic
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKRightFootOffset = FVector::ZeroVector;
 
@@ -56,12 +69,21 @@ protected:
 
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKPelvisBoneOffset = FVector::ZeroVector;
+#pragma endregion
+
+#pragma region Weapon
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsAiming = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	FRotator AimRotation = FRotator::ZeroRotator;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation | Weapon")
 	EEquipableItemType CurrentEquippedItem = EEquipableItemType::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation | Weapon")
 	FTransform ForeGripSocketTransforn;
+#pragma endregion
 
 private:
 	TWeakObjectPtr<class AMPBaseCharacter> CachedBaseCharacter;

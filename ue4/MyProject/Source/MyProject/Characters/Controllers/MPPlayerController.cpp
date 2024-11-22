@@ -20,6 +20,7 @@ void AMPPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
+	// Axis
 	InputComponent->BindAxis("MoveForward", this, &AMPPlayerController::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AMPPlayerController::MoveRight);
 	InputComponent->BindAxis("Turn", this, &AMPPlayerController::Turn);
@@ -27,7 +28,10 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAxis("SwimForward", this, &AMPPlayerController::SwimForward);
 	InputComponent->BindAxis("SwimRight", this, &AMPPlayerController::SwimRight);
 	InputComponent->BindAxis("SwimUp", this, &AMPPlayerController::SwimUp);
+	InputComponent->BindAxis("ClimbLadderUp", this, &AMPPlayerController::ClimbLadderUp);
 
+	// Action
+	InputComponent->BindAction("InteractWithLadder", EInputEvent::IE_Pressed, this, &AMPPlayerController::InteractWithLadder);
 	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AMPPlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AMPPlayerController::Jump);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeCrouchState);
@@ -42,6 +46,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Released, this, &AMPPlayerController::PreviousItem);
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AMPPlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AMPPlayerController::Reload);
+	InputComponent->BindAction("FiringMode", EInputEvent::IE_Pressed, this, &AMPPlayerController::FiringMode);
 }
 
 void AMPPlayerController::CreateAndInitializeWidgets()
@@ -139,6 +144,14 @@ void AMPPlayerController::SwimUp(float Value)
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->SwimUp(Value);
+	}
+}
+
+void AMPPlayerController::ClimbLadderUp(float Value)
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->ClimbLadderUp(Value);
 	}
 }
 
@@ -251,5 +264,21 @@ void AMPPlayerController::Reload()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->ReloadCurrentRangeWeapon();
+	}
+}
+
+void AMPPlayerController::FiringMode()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->FiringMode();
+	}
+}
+
+void AMPPlayerController::InteractWithLadder()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->InteractWithLadder();
 	}
 }

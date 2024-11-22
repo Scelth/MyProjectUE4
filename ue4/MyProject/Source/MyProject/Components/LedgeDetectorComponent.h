@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -28,7 +26,12 @@ class MYPROJECT_API ULedgeDetectorComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:	
-	bool DetectLedge(OUT FLedgeDescription& LegdeDescription);
+	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;
+	float BaseCapsuleRadius;
+	float BaseCapsuleHalfHeight;
+	float PlayerBottom;
+
+	bool DetectLedge(OUT FLedgeDescription& LedgeDescription);
 
 protected:
 	virtual void BeginPlay() override;
@@ -41,7 +44,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Detection Settings", meta = (UIMin = 0.f, ClampMin = 0.f))
 	float ForwardCheckDistance = 100.f;
-
-public:	
-	TWeakObjectPtr<class ACharacter> CachedCharacterOwner;
 };

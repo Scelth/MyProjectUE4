@@ -73,3 +73,21 @@ bool MPTraceUtils::OverlapCapsuleAnyByProfile(const UWorld* World, const FVector
 
 	return bResult;
 }
+
+bool MPTraceUtils::OverlapCapsuleBlockingByProfile(const UWorld* World, const FVector& Position, float CapsuleRadius, float CapsuleHalfHeight, FQuat Rotation, FName ProfileName, const FCollisionQueryParams& QueryParams, bool bDrawDebug, float DrawTime, FColor HitColor)
+{
+	bool bResult = false;
+
+	FCollisionShape CollisionShape = FCollisionShape::MakeCapsule(CapsuleRadius, CapsuleHalfHeight);
+
+	bResult = World->OverlapBlockingTestByProfile(Position, Rotation, ProfileName, CollisionShape, QueryParams);
+
+#if ENABLE_DRAW_DEBUG
+	if (bDrawDebug && bResult)
+	{
+		DrawDebugCapsule(World, Position, CapsuleHalfHeight, CapsuleRadius, Rotation, HitColor, false, DrawTime);
+	}
+#endif
+
+	return bResult;
+}

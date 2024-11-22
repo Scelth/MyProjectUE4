@@ -2,6 +2,7 @@
 
 #define ECC_Bullet ECC_GameTraceChannel1
 #define ECC_Climbing ECC_GameTraceChannel2
+#define ECC_InteractionVolume ECC_GameTraceChannel3
 
 const FName FXParamTraceEnd = FName("TraceEnd");
 
@@ -9,7 +10,9 @@ const FName DebugCategoryLedgeDetection = FName("LedgeDetection");
 const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
 const FName DebugCategoryRangeWeapon = FName("RangeWeapon");
 
-const FName PawnCollisionProfile = FName("Pawn");
+const FName CollisionProfilePawn = FName("Pawn");
+const FName CollisionProfileRagdoll = FName("Ragdoll");
+const FName CollisionProfileInteractionVolume = FName("PawnInteractionVolume");
 
 const FName PawnHeadBone = FName("head");
 
@@ -17,8 +20,6 @@ const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForeGrip = FName("ForeGripSocket");
 const FName SocketCharacterThrowable = FName("ThrowableSocket");
-
-const FName CollisionProfileRagdoll = FName("Ragdoll");
 
 const FName SectionMontageEndReload = FName("EndReload");
 
@@ -39,6 +40,7 @@ enum class EAmunitionType : uint8
 	Rifle,
 	ShotgunShells,
 	FragGrenades,
+	RifleGrenades,
 	MAX UMETA(Hidden)
 };
 

@@ -39,13 +39,9 @@ protected:
 
 	float InitialSpringArmLength;
 
-	virtual void Tick(float DeltaTime) override;
-	virtual void OnStartAimingInternal() override;
-	virtual void OnStopAimingInternal() override;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")
 	float ProneSpringArmLength = 200.f;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")
 	float CameraInterpSpeed = 2.f;
 
@@ -58,12 +54,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Aiming")
 	class UCurveFloat* AimingCurve;
 
+	virtual void Tick(float DeltaTime) override;
+	virtual void OnStartAimingInternal() override;
+	virtual void OnStopAimingInternal() override;
+
 private:
-	void UpdateSpringArm(float DeltaTime);
-	
 	float CameraBaseSpeedMultiplier = 1.f;
 	float DefaultFOV = 90.f; 
 	float AimingFOV = 60.f; 
 
 	FTimeline AimingTimeline; 
+	
+	void UpdateSpringArm(float DeltaTime);
 };
