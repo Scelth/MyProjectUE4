@@ -217,7 +217,6 @@ private:
 #pragma endregion
 
 	void TryChangeSprintState(float DeltaTime);
-
 	void EnableRagdoll();
 
 	const FMantlingSettings& GetMantlingSettings(float LedgeHeight) const;

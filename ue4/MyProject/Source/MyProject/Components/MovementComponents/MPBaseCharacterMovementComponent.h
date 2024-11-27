@@ -34,18 +34,29 @@ enum class ECustomMovementMode : uint8
 	CMOVE_None = 0 UMETA(DisplayName = "None"),
 	CMOVE_Mantling UMETA(DisplayName = "Mantling"),
 	CMOVE_Ladder UMETA(DisplayName = "Ladder"),
+	CMOVE_WallRun UMETA(DisplayName = "Wall run"),
 	CMOVE_Max UMETA(Hidden)
 };
 #pragma endregion
 
-#pragma region Detach From Ladder Method
+#pragma region Detach From Interactives Method
 UENUM(BlueprintType)
-enum class EDetachFromLadderMethod : uint8
+enum class EDetachFromInteractionMethod : uint8
 {
 	Fall = 0,
 	ReachingTheTop,
 	ReachingTheBottom,
 	JumpOff
+};
+#pragma endregion
+
+#pragma region WallRun Side
+UENUM(BlueprintType)
+enum class EWallRunSide : uint8
+{
+	None UMETA(DisplayName = "None"),
+	Right UMETA(DisplayName = "Right"),
+	Left UMETA(DisplayName = "Left")
 };
 #pragma endregion
 
@@ -81,11 +92,20 @@ public:
 
 #pragma region Ladder
 	void AttachToLadder(const class ALadder* Ladder);
+	void DetachFromLadder(EDetachFromInteractionMethod DetachFromLadderMethod = EDetachFromInteractionMethod::Fall);
 	float GetActorToCurrentLadderProjection(const FVector& Location) const;
-	void DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod = EDetachFromLadderMethod::Fall);
 	bool IsOnLadder() const;
 	float GetLadderSpeedRation() const;
 	const class ALadder* GetCurrentLadder() const { return CurrentLadder; }
+#pragma endregion
+
+#pragma region WallForRun
+	bool IsOnWall() const;
+	bool IsSurfaceWallRunable(const FVector& SurfaceNormal) const;
+	void AttachToWall(EWallRunSide Side, const FVector& Direction);
+	void DetachFromWall(EDetachFromInteractionMethod DetachFromWallMethod = EDetachFromInteractionMethod::Fall);
+	void GetWallRunSideAndDirection(const FVector& HitNormal, EWallRunSide& OutSide, FVector& OutDirection) const;
+	EWallRunSide GetCurrentWallRunSide() const { return CurrentWallRunSide; }
 #pragma endregion
 
 protected:
@@ -101,6 +121,7 @@ protected:
 
 	void PhysMantling(float DeltaTime, int32 Iterations);
 	void PhysLadder(float DeltaTime, int32 Iterations);
+	void PhysWallRun(float DeltaTime, int32 iterations);
 #pragma endregion
 
 #pragma region UPROPERTY
@@ -116,29 +137,35 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneSpeed = 150.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float SwimmingCapsuleRadius = 60.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Swimming", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float SwimmingCapsuleHalfHeight = 60.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ClimbingMaxSpeed = 200.f;	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ClimbingOnLadderBrakingDeceleration = 2048.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float LadderToCharacterOffset = 60.f;	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MaxLadderTopOffset = 90.f;	
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MinLadderBottomOffset = 90.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = "0", UIMin = "0"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Ladder", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float JumpOffFromLadderSpeed = 500.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxWallRunTime = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxWallRunSpeed = 1000.0f;
 #pragma endregion
 
 private:
@@ -152,6 +179,9 @@ private:
 	float ScaleCrouchHalfHeight = 0.6f;
 	float HeightAdjust = 0.f;
 	float InterpSpeed = 10.f;
+	float WallRunTimeElapsed = 0.f;
+	float ForwardAxis = 0.0f;
+	float RightAxis = 0.0f;
 
 	TSoftObjectPtr<class APlayerCharacter> CachedPlayerCharacter;
 
@@ -161,9 +191,15 @@ private:
 
 	FRotator ForceTargetRotation = FRotator::ZeroRotator;
 
+	FVector CurrentWallRunDirection = FVector::ZeroVector;
+	EWallRunSide CurrentWallRunSide = EWallRunSide::None;
+
 	const ALadder* CurrentLadder = nullptr;
 #pragma endregion
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float ExhaustedSpeed = 200.f;
+
+	UFUNCTION()
+	void OnPlayerCapsuleHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 };

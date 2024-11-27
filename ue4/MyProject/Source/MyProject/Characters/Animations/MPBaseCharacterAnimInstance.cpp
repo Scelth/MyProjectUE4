@@ -32,10 +32,16 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsOutOfStamina = CharacterMovement->IsOutOfStamina();
 	bIsSwimming = CharacterMovement->IsSwimming();
 	bIsOnLadder = CharacterMovement->IsOnLadder();
+	bIsOnWall = CharacterMovement->IsOnWall();
 
 	if (bIsOnLadder)
 	{
 		LadderSpeedRatio = CharacterMovement->GetLadderSpeedRation();
+	}
+
+	if (bIsOnWall)
+	{
+		WallRunSide = CharacterMovement->GetCurrentWallRunSide();
 	}
 	
 	bIsStrafing = !CharacterMovement->bOrientRotationToMovement;

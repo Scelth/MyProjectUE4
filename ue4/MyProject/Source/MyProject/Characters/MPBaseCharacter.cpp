@@ -135,6 +135,11 @@ const FMantlingSettings& AMPBaseCharacter::GetMantlingSettings(float LedgeHeight
 #pragma region Jump
 void AMPBaseCharacter::Jump()
 {
+	if (GetBaseCharacterMovementComponent()->IsOnWall())
+	{
+		GetBaseCharacterMovementComponent_Mutable()->DetachFromWall(EDetachFromInteractionMethod::JumpOff);
+	}
+
 	if (GetBaseCharacterMovementComponent()->IsProning())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->StopProne(false);
@@ -337,7 +342,7 @@ void AMPBaseCharacter::InteractWithLadder()
 {
 	if (GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
-		GetBaseCharacterMovementComponent_Mutable()->DetachFromLadder(EDetachFromLadderMethod::JumpOff);
+		GetBaseCharacterMovementComponent_Mutable()->DetachFromLadder(EDetachFromInteractionMethod::JumpOff);
 	}
 
 	else

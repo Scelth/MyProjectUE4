@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
 #include "MyProject/MPTypes.h"
+#include "MyProject/Components/MovementComponents/MPBaseCharacterMovementComponent.h"
 #include "MPBaseCharacterAnimInstance.generated.h"
 
 UCLASS()
@@ -58,6 +59,14 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
 	bool bIsOnLadder = false;	
+#pragma endregion
+
+#pragma region WallRun
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	EWallRunSide WallRunSide;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsOnWall = false;
 #pragma endregion
 
 #pragma region Inverse Kinematic

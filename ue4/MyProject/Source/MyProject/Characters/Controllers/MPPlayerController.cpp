@@ -8,6 +8,8 @@
 #include "MyProject/UI/Widget/PlayerHUDWidget.h"
 #include "MyProject/UI/Widget/AmmoWidget.h"
 
+
+#pragma region Base
 void AMPPlayerController::SetPawn(APawn* InPawn)
 {
 	Super::SetPawn(InPawn);
@@ -90,7 +92,9 @@ void AMPPlayerController::CreateAndInitializeWidgets()
 		}
 	}
 }
+#pragma endregion
 
+#pragma region Axis
 void AMPPlayerController::MoveForward(float Value)
 {
 	if (CachedBaseCharacter.IsValid())
@@ -154,7 +158,9 @@ void AMPPlayerController::ClimbLadderUp(float Value)
 		CachedBaseCharacter->ClimbLadderUp(Value);
 	}
 }
+#pragma endregion 
 
+#pragma region Action
 void AMPPlayerController::ChangeCrouchState()
 {
 	if (CachedBaseCharacter.IsValid())
@@ -282,3 +288,4 @@ void AMPPlayerController::InteractWithLadder()
 		CachedBaseCharacter->InteractWithLadder();
 	}
 }
+#pragma endregion

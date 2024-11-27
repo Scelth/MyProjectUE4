@@ -3,6 +3,7 @@
 #define ECC_Bullet ECC_GameTraceChannel1
 #define ECC_Climbing ECC_GameTraceChannel2
 #define ECC_InteractionVolume ECC_GameTraceChannel3
+#define ECC_WallRunnable ECC_GameTraceChannel4
 
 const FName FXParamTraceEnd = FName("TraceEnd");
 
@@ -17,9 +18,9 @@ const FName CollisionProfileInteractionVolume = FName("PawnInteractionVolume");
 const FName PawnHeadBone = FName("head");
 
 const FName SocketCharacterWeapon = FName("CharacterWeaponSocket");
+const FName SocketCharacterThrowable = FName("ThrowableSocket");
 const FName SocketWeaponMuzzle = FName("MuzzleSocket");
 const FName SocketWeaponForeGrip = FName("ForeGripSocket");
-const FName SocketCharacterThrowable = FName("ThrowableSocket");
 
 const FName SectionMontageEndReload = FName("EndReload");
 

@@ -5,6 +5,7 @@
 #include "MyProject/Characters/PlayerCharacter.h"
 #include "MyProject/Actors/Interactive/Environment/Ladder.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
+#include "MyProject/MPTypes.h"
 
 #pragma region Base
 void UMPBaseCharacterMovementComponent::BeginPlay()
@@ -12,6 +13,9 @@ void UMPBaseCharacterMovementComponent::BeginPlay()
 	Super::BeginPlay();
 	checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
 	CachedPlayerCharacter = StaticCast<APlayerCharacter*>(GetOwner());
+
+	GetBaseCharacterOwner()->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit);
+	GetBaseCharacterOwner()->GetCharacterMovement()->SetPlaneConstraintEnabled(true);
 }
 
 float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
@@ -43,6 +47,13 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = ClimbingMaxSpeed;
 	}
 
+	if (IsOnWall())
+	{
+		Result = MaxWallRunSpeed;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Result: %f"), Result)
+
 	return Result;
 }
 
@@ -68,7 +79,7 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
 	{
 		CurrentLadder = nullptr;
-	}
+	}	
 
 	if (MovementMode == MOVE_Custom)
 	{
@@ -144,6 +155,11 @@ void UMPBaseCharacterMovementComponent::PhysicsRotation(float DeltaTime)
 		return;
 	}
 
+	if (IsOnWall())
+	{
+		return;
+	}
+
 	Super::PhysicsRotation(DeltaTime);
 }
 
@@ -160,6 +176,12 @@ void UMPBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 		case (uint8)ECustomMovementMode::CMOVE_Ladder:
 		{
 			PhysLadder(DeltaTime, Iterations);
+			break;
+		}
+
+		case (uint8)ECustomMovementMode::CMOVE_WallRun:
+		{
+			PhysWallRun(DeltaTime, Iterations);
 			break;
 		}
 
@@ -201,6 +223,9 @@ void UMPBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 
 	FVector Delta = Velocity * DeltaTime;
 
+	FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
+	GetOwner()->SetActorRotation(TargetOrientationRotation);
+
 	if (HasAnimRootMotion())
 	{
 		FHitResult Hit;
@@ -214,19 +239,71 @@ void UMPBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterat
 
 	if (NewPosProjection < MinLadderBottomOffset)
 	{
-		DetachFromLadder(EDetachFromLadderMethod::ReachingTheBottom);
+		DetachFromLadder(EDetachFromInteractionMethod::ReachingTheBottom);
 		return;
 	}
 
 	else if (NewPosProjection > (CurrentLadder->GetLadderHeight() - MaxLadderTopOffset))
 	{
-		DetachFromLadder(EDetachFromLadderMethod::ReachingTheTop);
+		DetachFromLadder(EDetachFromInteractionMethod::ReachingTheTop);
 		return;
 	}
 
 	FHitResult Hit;
 
 	SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, Hit);
+}
+
+void UMPBaseCharacterMovementComponent::PhysWallRun(float DeltaTime, int32 iterations)
+{
+	WallRunTimeElapsed += DeltaTime;
+
+	if (WallRunTimeElapsed >= MaxWallRunTime)
+	{
+		DetachFromWall();
+		return;
+	}
+
+	FVector Delta = Velocity * DeltaTime;
+	FHitResult HitResult;
+
+	FVector LineTraceDirection = CurrentWallRunSide == EWallRunSide::Right ? GetOwner()->GetActorRightVector() : -GetOwner()->GetActorRightVector();
+	float LineTraceLength = 200.0f;
+
+	FVector StartPosition = GetActorLocation();
+	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
+
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(GetBaseCharacterOwner());
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, StartPosition, EndPosition, ECC_WallRunnable, QueryParams))
+	{
+		EWallRunSide Side = EWallRunSide::None;
+		FVector Direction = FVector::ZeroVector;
+		GetWallRunSideAndDirection(HitResult.ImpactNormal, Side, Direction);
+
+		if (Side != CurrentWallRunSide)
+		{
+			DetachFromWall();
+		}
+
+		else
+		{
+			CurrentWallRunDirection = Direction;
+			Velocity = GetMaxSpeed() * CurrentWallRunDirection;
+			Delta = Velocity * DeltaTime;
+		}
+
+		FRotator TargetOrientationRotation = Direction.ToOrientationRotator();
+		GetOwner()->SetActorRotation(TargetOrientationRotation);
+		SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, HitResult);
+	}
+
+	else
+	{
+		DetachFromWall();
+		return;
+	}
 }
 #pragma endregion
 
@@ -351,23 +428,23 @@ float UMPBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const
 	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
 }
 
-void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod DetachFromLadderMethod)
+void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromInteractionMethod DetachFromLadderMethod)
 {
 	switch (DetachFromLadderMethod)
 	{
-		case EDetachFromLadderMethod::ReachingTheTop:
+		case EDetachFromInteractionMethod::ReachingTheTop:
 		{
 			GetBaseCharacterOwner()->Mantle(true);
 			break;
 		}
 
-		case EDetachFromLadderMethod::ReachingTheBottom:
+		case EDetachFromInteractionMethod::ReachingTheBottom:
 		{
 			SetMovementMode(MOVE_Walking);
 			break;
 		}
 
-		case EDetachFromLadderMethod::JumpOff:
+		case EDetachFromInteractionMethod::JumpOff:
 		{
 			FVector JumpDirection = CurrentLadder->GetActorForwardVector();
 			FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
@@ -382,7 +459,7 @@ void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromLadderMethod
 			break;
 		}
 
-		case EDetachFromLadderMethod::Fall:
+		case EDetachFromInteractionMethod::Fall:
 		default:
 		{
 			SetMovementMode(MOVE_Falling);
@@ -402,6 +479,115 @@ float UMPBaseCharacterMovementComponent::GetLadderSpeedRation() const
 {
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	return FVector::DotProduct(LadderUpVector, Velocity) / ClimbingMaxSpeed;
+}
+#pragma endregion
+
+#pragma region WallForRun
+void UMPBaseCharacterMovementComponent::AttachToWall(EWallRunSide Side, const FVector& Direction)
+{
+	CurrentWallRunSide = Side;
+	CurrentWallRunDirection = Direction;
+
+	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_WallRun);
+}
+
+void UMPBaseCharacterMovementComponent::DetachFromWall(EDetachFromInteractionMethod DetachFromWallMethod)
+{
+	WallRunTimeElapsed = 0.f;
+
+	switch (DetachFromWallMethod)
+	{
+		case EDetachFromInteractionMethod::JumpOff:
+		{
+			FVector JumpDirection = FVector::ZeroVector;
+
+			if (CurrentWallRunSide == EWallRunSide::Right)
+			{
+				JumpDirection = FVector::CrossProduct(CurrentWallRunDirection, FVector::UpVector).GetSafeNormal();
+			}
+
+			else
+			{
+				JumpDirection = FVector::CrossProduct(FVector::UpVector, CurrentWallRunDirection).GetSafeNormal();
+			}
+
+			JumpDirection += FVector::UpVector;
+
+			GetBaseCharacterOwner()->LaunchCharacter(JumpZVelocity * JumpDirection.GetSafeNormal(), false, true);
+			break;
+		}
+
+		case EDetachFromInteractionMethod::Fall:
+		{
+			SetMovementMode(MOVE_Falling);
+			break;
+		}
+	}
+
+	SetMovementMode(MOVE_Falling);
+}
+
+void UMPBaseCharacterMovementComponent::GetWallRunSideAndDirection(const FVector& HitNormal, EWallRunSide& OutSide, FVector& OutDirection) const
+{
+	if (FVector::DotProduct(HitNormal, GetOwner()->GetActorRightVector()) > 0)
+	{
+		OutSide = EWallRunSide::Left;
+		OutDirection = FVector::CrossProduct(HitNormal, FVector::UpVector).GetSafeNormal();
+	}
+
+	else
+	{
+		OutSide = EWallRunSide::Right;
+		OutDirection = FVector::CrossProduct(FVector::UpVector, HitNormal).GetSafeNormal();
+	}
+}
+
+bool UMPBaseCharacterMovementComponent::IsSurfaceWallRunable(const FVector& SurfaceNormal) const
+{
+	if (SurfaceNormal.Z > GetWalkableFloorZ() || SurfaceNormal.Z < -0.005f)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool UMPBaseCharacterMovementComponent::IsOnWall() const
+{
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_WallRun ;
+}
+
+
+void UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (!OtherActor || IsOnWall())
+	{
+		return;
+	}
+
+	if (!OtherComp->GetCollisionResponseToChannel(ECC_WallRunnable))
+	{
+		return;
+	}
+
+	FVector HitNormal = Hit.ImpactNormal;
+
+	if (!IsSurfaceWallRunable(HitNormal))
+	{
+		return;
+	}
+
+	if (!IsFalling())
+	{
+		return;
+	}
+
+	EWallRunSide Side = EWallRunSide::None;
+	FVector Direction = FVector::ZeroVector;
+
+	GetWallRunSideAndDirection(HitNormal, Side, Direction);
+
+	AttachToWall(Side, Direction);
 }
 #pragma endregion
 
