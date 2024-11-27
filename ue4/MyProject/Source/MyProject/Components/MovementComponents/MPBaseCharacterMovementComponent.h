@@ -101,7 +101,6 @@ public:
 
 #pragma region WallForRun
 	bool IsOnWall() const;
-	bool IsSurfaceWallRunable(const FVector& SurfaceNormal) const;
 	void AttachToWall(EWallRunSide Side, const FVector& Direction);
 	void DetachFromWall(EDetachFromInteractionMethod DetachFromWallMethod = EDetachFromInteractionMethod::Fall);
 	void GetWallRunSideAndDirection(const FVector& HitNormal, EWallRunSide& OutSide, FVector& OutDirection) const;

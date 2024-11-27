@@ -542,16 +542,6 @@ void UMPBaseCharacterMovementComponent::GetWallRunSideAndDirection(const FVector
 	}
 }
 
-bool UMPBaseCharacterMovementComponent::IsSurfaceWallRunable(const FVector& SurfaceNormal) const
-{
-	if (SurfaceNormal.Z > GetWalkableFloorZ() || SurfaceNormal.Z < -0.005f)
-	{
-		return false;
-	}
-
-	return true;
-}
-
 bool UMPBaseCharacterMovementComponent::IsOnWall() const
 {
 	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_WallRun ;
@@ -570,13 +560,6 @@ void UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit(UPrimitiveComponent* 
 		return;
 	}
 
-	FVector HitNormal = Hit.ImpactNormal;
-
-	if (!IsSurfaceWallRunable(HitNormal))
-	{
-		return;
-	}
-
 	if (!IsFalling())
 	{
 		return;
@@ -584,6 +567,7 @@ void UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit(UPrimitiveComponent* 
 
 	EWallRunSide Side = EWallRunSide::None;
 	FVector Direction = FVector::ZeroVector;
+	FVector HitNormal = Hit.ImpactNormal;
 
 	GetWallRunSideAndDirection(HitNormal, Side, Direction);
 
