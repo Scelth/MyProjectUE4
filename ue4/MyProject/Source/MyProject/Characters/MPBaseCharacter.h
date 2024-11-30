@@ -92,6 +92,7 @@ public:
 	void ReloadCurrentRangeWeapon();
 	void FiringMode();
 	void InteractWithLadder();
+	void InteractWithZipline();
 #pragma endregion
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
@@ -131,6 +132,7 @@ public:
 	UMPBaseCharacterMovementComponent* GetBaseCharacterMovementComponent_Mutable() const { return MPBaseCharacterMovementComponent; }
 
 	const class ALadder* GetAvailableLadder() const;
+	const class AZipline* GetAvailableZipline() const;
 #pragma endregion
 
 protected:

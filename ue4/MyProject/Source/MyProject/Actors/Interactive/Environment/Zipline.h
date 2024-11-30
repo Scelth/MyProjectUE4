@@ -6,56 +6,46 @@
 
 class UStaticMeshComponent;
 class UAnimMontage;
-class UBoxComponent;
+class UCapsuleComponent;
 
 UCLASS(Blueprintable)
 class MYPROJECT_API AZipline : public AInteractiveActor
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 public:
-	AZipline();
+    AZipline();
 
-	virtual void BeginPlay() override;
-	virtual void OnConstruction(const FTransform& Transform) override;
+    virtual void OnConstruction(const FTransform& Transform) override;
 
-	float GetPillarHeight() const { return PillarHeight; }
-	UAnimMontage* GetAttachFromTopAnimMontage() const { return AttachFromTopAnimMontage; }
-
-	void ScalePillar(UStaticMeshComponent* PillarMeshComponent, float Height, float Width);
+    const UStaticMeshComponent* GetUpperPillarMeshComponent() const { return UpperPillarMeshComponent; }
+    const UStaticMeshComponent* GetLowerPillarMeshComponent() const { return LowerPillarMeshComponent; }
 
 protected:
 #pragma region UPROPERTY
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
-	float PillarHeight = 250.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
+    float PillarHeight = 100.f;    
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
+    float CableLength = 100.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
-	float PillarWidth = 100.f;
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters", meta = (ClampMin = 0.f, UIMin = 0.f, ClampMax = 90.f, UIMax = 90.f))
+    float UpperPillarAngleDegrees = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
-	FVector RightPillarLocation = FVector::ZeroVector;	
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
-	FVector LeftPillarLocation = FVector::ZeroVector;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UStaticMeshComponent* UpperPillarMeshComponent;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Zipline | Parameters")
-	UAnimMontage* AttachFromTopAnimMontage;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UStaticMeshComponent* LowerPillarMeshComponent;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* RightPillarMeshComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* LeftPillarMeshComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* CableMeshComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UBoxComponent* TopInteractionVolume;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+    UInstancedStaticMeshComponent* CableMeshComponent;
 #pragma endregion
 
-	//virtual void OnInteractionVolumeOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
-	//virtual void OnInteractionVolumeOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+    UCapsuleComponent* GetPillarInteractionCapsuleVolume() const;
 
-	UBoxComponent* GetPillarInteractionBoxVolume() const;
+private:
+    void ScalePillar(UStaticMeshComponent* PillarMeshComponent);
+    void ScaleCable();
+    void ScaleInteractionCapsule();
 };

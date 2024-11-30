@@ -4,6 +4,7 @@
 #include "Curves/CurveVector.h"
 #include "MyProject/Characters/PlayerCharacter.h"
 #include "MyProject/Actors/Interactive/Environment/Ladder.h"
+#include "MyProject/Actors/Interactive/Environment/Zipline.h"
 #include "MyProject/Characters/MPBaseCharacter.h"
 #include "MyProject/MPTypes.h"
 
@@ -52,7 +53,10 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = MaxWallRunSpeed;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Result: %f"), Result)
+	if (IsOnZipline())
+	{
+		Result = MaxZiplineSpeed;
+	}
 
 	return Result;
 }
@@ -79,6 +83,11 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
 	{
 		CurrentLadder = nullptr;
+	}		
+	
+	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Zipline)
+	{
+		CurrentZipline = nullptr;
 	}	
 
 	if (MovementMode == MOVE_Custom)
@@ -88,7 +97,6 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 			case (uint8)ECustomMovementMode::CMOVE_Mantling:
 			{
 				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UMPBaseCharacterMovementComponent::EndMantle, CurrentMantlingParameters.Duration, false);
-
 				break;
 			}
 
@@ -182,6 +190,12 @@ void UMPBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 		case (uint8)ECustomMovementMode::CMOVE_WallRun:
 		{
 			PhysWallRun(DeltaTime, Iterations);
+			break;
+		}		
+		
+		case (uint8)ECustomMovementMode::CMOVE_Zipline:
+		{
+			PhysZipline(DeltaTime, Iterations);
 			break;
 		}
 
@@ -303,6 +317,28 @@ void UMPBaseCharacterMovementComponent::PhysWallRun(float DeltaTime, int32 itera
 	{
 		DetachFromWall();
 		return;
+	}
+}
+
+void UMPBaseCharacterMovementComponent::PhysZipline(float DeltaTime, int32 iterations)
+{
+	FRotator TargetOrientationRotation = CurrentZipline->GetActorForwardVector().ToOrientationRotator();
+	TargetOrientationRotation.Yaw = 0.f;
+	GetOwner()->SetActorRotation(TargetOrientationRotation);
+
+	FVector StartPoint = CurrentZipline->GetUpperPillarMeshComponent()->GetComponentLocation();
+	FVector EndPoint = CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation();
+	FVector Direction = (EndPoint - StartPoint).GetSafeNormal();
+
+	FVector Delta = Direction * GetMaxSpeed() * DeltaTime;
+
+	FHitResult Hit;
+	SafeMoveUpdatedComponent(Delta, UpdatedComponent->GetComponentQuat(), true, Hit);
+
+	const float DetachRadius = 100.f;
+	if (FVector::Dist(UpdatedComponent->GetComponentLocation(), CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation()) <= DetachRadius)
+	{
+		DetachFromZipline();
 	}
 }
 #pragma endregion
@@ -572,6 +608,38 @@ void UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit(UPrimitiveComponent* 
 	GetWallRunSideAndDirection(HitNormal, Side, Direction);
 
 	AttachToWall(Side, Direction);
+}
+#pragma endregion
+
+#pragma region Zipline
+void UMPBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
+{
+	CurrentZipline = Zipline;
+
+	FVector StartPoint = CurrentZipline->GetUpperPillarMeshComponent()->GetComponentLocation();
+	FVector ClosestPoint = FMath::ClosestPointOnSegment(GetOwner()->GetActorLocation(), StartPoint, CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation());
+
+	GetOwner()->SetActorLocation(ClosestPoint);
+
+	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Zipline);
+}
+
+void UMPBaseCharacterMovementComponent::DetachFromZipline()
+{
+	SetMovementMode(MOVE_Falling);
+}
+
+float UMPBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(const FVector& Location) const
+{
+	FVector ZiplineUpVector = CurrentZipline->GetActorUpVector();
+	FVector ZiplineToCharacterDistance = Location - CurrentZipline->GetActorLocation();
+
+	return FVector::DotProduct(ZiplineUpVector, ZiplineToCharacterDistance);
+}
+
+bool UMPBaseCharacterMovementComponent::IsOnZipline() const
+{
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_Zipline;
 }
 #pragma endregion
 

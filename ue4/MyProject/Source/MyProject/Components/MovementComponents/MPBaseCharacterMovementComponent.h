@@ -35,6 +35,7 @@ enum class ECustomMovementMode : uint8
 	CMOVE_Mantling UMETA(DisplayName = "Mantling"),
 	CMOVE_Ladder UMETA(DisplayName = "Ladder"),
 	CMOVE_WallRun UMETA(DisplayName = "Wall run"),
+	CMOVE_Zipline UMETA(DisplayName = "Zipline"),
 	CMOVE_Max UMETA(Hidden)
 };
 #pragma endregion
@@ -91,10 +92,10 @@ public:
 #pragma endregion
 
 #pragma region Ladder
+	bool IsOnLadder() const;
 	void AttachToLadder(const class ALadder* Ladder);
 	void DetachFromLadder(EDetachFromInteractionMethod DetachFromLadderMethod = EDetachFromInteractionMethod::Fall);
 	float GetActorToCurrentLadderProjection(const FVector& Location) const;
-	bool IsOnLadder() const;
 	float GetLadderSpeedRation() const;
 	const class ALadder* GetCurrentLadder() const { return CurrentLadder; }
 #pragma endregion
@@ -105,6 +106,14 @@ public:
 	void DetachFromWall(EDetachFromInteractionMethod DetachFromWallMethod = EDetachFromInteractionMethod::Fall);
 	void GetWallRunSideAndDirection(const FVector& HitNormal, EWallRunSide& OutSide, FVector& OutDirection) const;
 	EWallRunSide GetCurrentWallRunSide() const { return CurrentWallRunSide; }
+#pragma endregion
+
+#pragma region Zipline
+	bool IsOnZipline() const;
+	void AttachToZipline(const class AZipline* Zipline);
+	void DetachFromZipline();
+	float GetActorToCurrentZiplineProjection(const FVector& Location) const;
+	const class AZipline* GetCurrentZipline() const { return CurrentZipline; }
 #pragma endregion
 
 protected:
@@ -121,6 +130,7 @@ protected:
 	void PhysMantling(float DeltaTime, int32 Iterations);
 	void PhysLadder(float DeltaTime, int32 Iterations);
 	void PhysWallRun(float DeltaTime, int32 iterations);
+	void PhysZipline(float DeltaTime, int32 iterations);
 #pragma endregion
 
 #pragma region UPROPERTY
@@ -165,6 +175,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MaxWallRunSpeed = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Zipline", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float ZiplineToCharacterOffset = 60.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | Zipline", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxZiplineSpeed = 1000.0f;
 #pragma endregion
 
 private:
@@ -194,6 +210,7 @@ private:
 	EWallRunSide CurrentWallRunSide = EWallRunSide::None;
 
 	const ALadder* CurrentLadder = nullptr;
+	const AZipline* CurrentZipline = nullptr;
 #pragma endregion
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))

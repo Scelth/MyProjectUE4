@@ -2,112 +2,100 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Components/BoxComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "MyProject/MPTypes.h"
 
 AZipline::AZipline()
 {
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("PillarRoot"));
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("PillarRoot"));
 
-	LeftPillarMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftPillar"));
-	LeftPillarMeshComponent->SetupAttachment(RootComponent);
+    LowerPillarMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftPillar"));
+    LowerPillarMeshComponent->SetupAttachment(RootComponent);
 
-	RightPillarMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightPillar"));
-	RightPillarMeshComponent->SetupAttachment(RootComponent);
+    UpperPillarMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightPillar"));
+    UpperPillarMeshComponent->SetupAttachment(RootComponent);
 
-	CableMeshComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Cable"));
-	CableMeshComponent->SetupAttachment(RootComponent);
+    CableMeshComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Cable"));
+    CableMeshComponent->SetupAttachment(RootComponent);
 
-	InteractionVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("InteractionVolume"));
-	InteractionVolume->SetupAttachment(RootComponent);
-	InteractionVolume->SetCollisionProfileName(CollisionProfileInteractionVolume);
-	InteractionVolume->SetGenerateOverlapEvents(true);
-}
-
-void AZipline::BeginPlay()
-{
+    InteractionVolume = CreateDefaultSubobject<UCapsuleComponent>(TEXT("InteractionVolume"));
+    InteractionVolume->SetupAttachment(RootComponent);
+    InteractionVolume->SetCollisionProfileName(CollisionProfileInteractionVolume);
+    InteractionVolume->SetGenerateOverlapEvents(true);
 }
 
 void AZipline::OnConstruction(const FTransform& Transform)
 {
-	RightPillarMeshComponent->SetRelativeLocation(RightPillarLocation);
-	LeftPillarMeshComponent->SetRelativeLocation(LeftPillarLocation);
+    const float AngleRadians = FMath::DegreesToRadians(UpperPillarAngleDegrees);
+    const float UpperPillarY = CableLength * 0.5f * FMath::Cos(AngleRadians);
+    const float UpperPillarZ = CableLength * 0.5f * FMath::Sin(AngleRadians) + PillarHeight * 0.5f;
 
-	UStaticMesh* LeftPillarMesh = LeftPillarMeshComponent->GetStaticMesh();
+    UpperPillarMeshComponent->SetRelativeLocation(FVector(0.f, UpperPillarY, UpperPillarZ));
+    LowerPillarMeshComponent->SetRelativeLocation(FVector(0.f, -CableLength * 0.5f, PillarHeight * 0.5f));
 
-	if (IsValid(LeftPillarMesh))
-	{
-		float MeshHeight = LeftPillarMesh->GetBoundingBox().GetSize().Z;
-
-		if (!FMath::IsNearlyZero(MeshHeight))
-		{
-			LeftPillarMeshComponent->SetRelativeScale3D(FVector(1.f, 1.f, PillarHeight / MeshHeight));
-		}
-	}
-
-	UStaticMesh* RightPillarMesh = RightPillarMeshComponent->GetStaticMesh();
-
-	if (IsValid(RightPillarMesh))
-	{
-		float MeshHeight = RightPillarMesh->GetBoundingBox().GetSize().Z;
-
-		if (!FMath::IsNearlyZero(MeshHeight))
-		{
-			RightPillarMeshComponent->SetRelativeScale3D(FVector(1.f, 1.f, PillarHeight / MeshHeight));
-		}
-	}
-
-	UStaticMesh* CableMesh = CableMeshComponent->GetStaticMesh();
-
-	if (IsValid(CableMesh))
-	{
-		float MeshWidth = CableMesh->GetBoundingBox().GetSize().X;
-
-		if (!FMath::IsNearlyZero(MeshWidth))
-		{
-			CableMeshComponent->SetRelativeScale3D(FVector(1.f, 1.f, 25.f));
-		}
-	}
-
-	FVector Center = (RightPillarLocation + LeftPillarLocation) / 2.0f;
-	FVector Extent;
-	Extent.X = FVector::Dist(RightPillarLocation, LeftPillarLocation) * 0.5f;
-	Extent.Y = PillarWidth * 0.5f;
-	Extent.Z = PillarHeight * 0.5f;
-
-	FVector BoxDepthExtent = GetPillarInteractionBoxVolume()->GetUnscaledBoxExtent();
-	GetPillarInteractionBoxVolume()->SetBoxExtent(Extent);
-	GetPillarInteractionBoxVolume()->SetRelativeLocation(Center);
-
-	//FVector TopBoxExtent = TopInteractionVolume->GetUnscaledBoxExtent();
-	//TopInteractionVolume->SetBoxExtent(FVector(TopBoxExtent.X, PillarWidth * 0.5f, TopBoxExtent.Z));
-	//TopInteractionVolume->SetRelativeLocation(FVector(-TopBoxExtent.X, 0.f, PillarHeight + TopBoxExtent.Z));
+    ScalePillar(LowerPillarMeshComponent);
+    ScalePillar(UpperPillarMeshComponent);
+    ScaleCable();
+    ScaleInteractionCapsule();
 }
 
-void AZipline::ScalePillar(UStaticMeshComponent* PillarMeshComponent, float Height, float Width)
+void AZipline::ScalePillar(UStaticMeshComponent* PillarMeshComponent)
 {
-	if (IsValid(PillarMeshComponent))
-	{
-		UStaticMesh* PillarMesh = PillarMeshComponent->GetStaticMesh();
+    UStaticMesh* PillarMesh = PillarMeshComponent->GetStaticMesh();
 
-		if (IsValid(PillarMesh))
-		{
-			FVector MeshSize = PillarMesh->GetBoundingBox().GetSize();
-			float MeshHeight = MeshSize.Z;
-			float MeshWidth = MeshSize.X;
+    if (IsValid(PillarMesh))
+    {
+        float MeshHeight = PillarMesh->GetBoundingBox().GetSize().Z;
 
-			if (!FMath::IsNearlyZero(MeshHeight) && !FMath::IsNearlyZero(MeshWidth))
-			{
-				float HeightScale = Height / MeshHeight;
-				float WidthScale = Width / MeshWidth;
-
-				PillarMeshComponent->SetRelativeScale3D(FVector(WidthScale, WidthScale, HeightScale));
-			}
-		}
-	}
+        if (!FMath::IsNearlyZero(MeshHeight))
+        {
+            PillarMeshComponent->SetRelativeScale3D(FVector(1.f, 1.f, PillarHeight / MeshHeight));
+        }
+    }
 }
 
-UBoxComponent* AZipline::GetPillarInteractionBoxVolume() const
+void AZipline::ScaleCable()
 {
-	return StaticCast<UBoxComponent*>(InteractionVolume);
+    const FVector LeftPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
+    const FVector RightPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
+    const FVector CableLocation = (LeftPillarPos + RightPillarPos) * 0.5f;
+    const FVector CableDirection = (RightPillarPos - LeftPillarPos).GetSafeNormal();
+    const FQuat CableRotation = FQuat::FindBetweenVectors(FVector::ForwardVector, CableDirection);
+
+    UStaticMesh* StepsMesh = CableMeshComponent->GetStaticMesh();
+
+    if (IsValid(StepsMesh))
+    {
+        float MeshWidth = StepsMesh->GetBoundingBox().GetSize().X;
+
+        if (!FMath::IsNearlyZero(MeshWidth))
+        {
+            float Length = FVector::Dist(LeftPillarPos, RightPillarPos);
+            CableMeshComponent->SetRelativeScale3D(FVector(Length / MeshWidth, 1.f, 1.f));
+        }
+    }
+
+    CableMeshComponent->SetRelativeLocation(CableLocation);
+    CableMeshComponent->SetRelativeRotation(CableRotation);
+    CableMeshComponent->ClearInstances();
+    CableMeshComponent->AddInstance(FTransform(FVector(1.f, 1.f, 1.f)));
+}
+
+void AZipline::ScaleInteractionCapsule()
+{
+    const FVector LeftPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
+    const FVector RightPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
+    const FVector CapsuleLocation = (LeftPillarPos + RightPillarPos) * 0.5f;
+    const FVector CapsuleDirection = (RightPillarPos - LeftPillarPos).GetSafeNormal();
+    const FQuat CapsuleRotation = FQuat::FindBetweenVectors(FVector::UpVector, CapsuleDirection);
+    const float CapsuleHalfHeight = FVector::Dist(LeftPillarPos, RightPillarPos) * 0.5f;
+
+    GetPillarInteractionCapsuleVolume()->SetRelativeLocation(CapsuleLocation);
+    GetPillarInteractionCapsuleVolume()->SetRelativeRotation(CapsuleRotation);
+    GetPillarInteractionCapsuleVolume()->SetCapsuleHalfHeight(CapsuleHalfHeight);
+}
+
+UCapsuleComponent* AZipline::GetPillarInteractionCapsuleVolume() const
+{
+    return StaticCast<UCapsuleComponent*>(InteractionVolume);
 }

@@ -51,4 +51,5 @@ private:
 	void Reload();
 	void FiringMode();
 	void InteractWithLadder();
+	void InteractWithZipline();
 };

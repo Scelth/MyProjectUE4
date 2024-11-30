@@ -69,6 +69,11 @@ protected:
 	bool bIsOnWall = false;
 #pragma endregion
 
+#pragma region Zipline
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character animation")
+	bool bIsOnZipline = false;
+#pragma endregion
+
 #pragma region Inverse Kinematic
 	UPROPERTY(EditAnywhere, Transient, BlueprintReadOnly, Category = "Settings | IK Setting")
 	FVector IKRightFootOffset = FVector::ZeroVector;

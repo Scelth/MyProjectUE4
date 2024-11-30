@@ -33,6 +33,7 @@ void UMPBaseCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	bIsSwimming = CharacterMovement->IsSwimming();
 	bIsOnLadder = CharacterMovement->IsOnLadder();
 	bIsOnWall = CharacterMovement->IsOnWall();
+	bIsOnZipline = CharacterMovement->IsOnZipline();
 
 	if (bIsOnLadder)
 	{

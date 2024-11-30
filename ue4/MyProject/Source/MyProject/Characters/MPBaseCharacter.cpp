@@ -6,6 +6,7 @@
 #include "MyProject/Actors/Equipment/Weapons/RangeWeaponItem.h"
 #include "MyProject/MPTypes.h"
 #include "MyProject/Actors/Interactive/Environment/Ladder.h"
+#include "MyProject/Actors/Interactive/Environment/Zipline.h"
 #include "Curves/CurveVector.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -370,6 +371,45 @@ const ALadder* AMPBaseCharacter::GetAvailableLadder() const
 		if (InteractiveActor->IsA<ALadder>())
 		{
 			Result = StaticCast<const ALadder*>(InteractiveActor);
+			break;
+		}
+	}
+
+	return Result;
+}
+
+void AMPBaseCharacter::InteractWithZipline()
+{
+	if (GetBaseCharacterMovementComponent()->IsOnZipline())
+	{
+		GetBaseCharacterMovementComponent_Mutable()->DetachFromZipline();
+	}
+
+	else
+	{
+		const AZipline* AvailableZipline = GetAvailableZipline();
+
+		if (IsValid(AvailableZipline))
+		{
+			//if (AvailableZipline->IsOnTop())
+			//{
+			//	PlayAnimMontage(AvailableZipline->GetAttachFromTopAnimMontage());
+			//}
+
+			GetBaseCharacterMovementComponent_Mutable()->AttachToZipline(AvailableZipline);
+		}
+	}
+}
+
+const AZipline* AMPBaseCharacter::GetAvailableZipline() const
+{
+	const AZipline* Result = nullptr;
+
+	for (const AInteractiveActor* InteractiveActor : AvaibleInteractiveActors)
+	{
+		if (InteractiveActor->IsA<AZipline>())
+		{
+			Result = StaticCast<const AZipline*>(InteractiveActor);
 			break;
 		}
 	}
