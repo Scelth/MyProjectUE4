@@ -112,8 +112,6 @@ public:
 	bool IsOnZipline() const;
 	void AttachToZipline(const class AZipline* Zipline);
 	void DetachFromZipline();
-	float GetActorToCurrentZiplineProjection(const FVector& Location) const;
-	const class AZipline* GetCurrentZipline() const { return CurrentZipline; }
 #pragma endregion
 
 protected:

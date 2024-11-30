@@ -333,10 +333,11 @@ void UMPBaseCharacterMovementComponent::PhysZipline(float DeltaTime, int32 itera
 	FVector Delta = Direction * GetMaxSpeed() * DeltaTime;
 
 	FHitResult Hit;
-	SafeMoveUpdatedComponent(Delta, UpdatedComponent->GetComponentQuat(), true, Hit);
+	SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), true, Hit);
 
 	const float DetachRadius = 100.f;
-	if (FVector::Dist(UpdatedComponent->GetComponentLocation(), CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation()) <= DetachRadius)
+
+	if (FVector::Dist(GetOwner()->GetActorLocation(), CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation()) <= DetachRadius)
 	{
 		DetachFromZipline();
 	}
@@ -619,7 +620,10 @@ void UMPBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
 	FVector StartPoint = CurrentZipline->GetUpperPillarMeshComponent()->GetComponentLocation();
 	FVector ClosestPoint = FMath::ClosestPointOnSegment(GetOwner()->GetActorLocation(), StartPoint, CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation());
 
-	GetOwner()->SetActorLocation(ClosestPoint);
+	float CapsuleHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	FVector AdjustedPosition = ClosestPoint - (GetOwner()->GetActorUpVector() * CapsuleHeight);
+
+	GetOwner()->SetActorLocation(AdjustedPosition);
 
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Zipline);
 }
@@ -627,14 +631,6 @@ void UMPBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
 void UMPBaseCharacterMovementComponent::DetachFromZipline()
 {
 	SetMovementMode(MOVE_Falling);
-}
-
-float UMPBaseCharacterMovementComponent::GetActorToCurrentZiplineProjection(const FVector& Location) const
-{
-	FVector ZiplineUpVector = CurrentZipline->GetActorUpVector();
-	FVector ZiplineToCharacterDistance = Location - CurrentZipline->GetActorLocation();
-
-	return FVector::DotProduct(ZiplineUpVector, ZiplineToCharacterDistance);
 }
 
 bool UMPBaseCharacterMovementComponent::IsOnZipline() const
