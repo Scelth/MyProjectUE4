@@ -175,7 +175,7 @@ void APlayerCharacter::OnStartAimingInternal()
 
 	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
 
-	if (AimingCurve)
+	if (AimingCurve && CurrentRangeWeapon->GetItemType() != EEquipableItemType::SniperRifle)
 	{
 		FOnTimelineFloat TimelineCallback;
 		TimelineCallback.BindUFunction(this, FName("UpdateFOV"));

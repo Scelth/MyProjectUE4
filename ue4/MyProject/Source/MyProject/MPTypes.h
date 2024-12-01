@@ -30,6 +30,7 @@ enum class EEquipableItemType : uint8
 	None,
 	Pistol,
 	Rifle,
+	SniperRifle,
 	Throwable
 };
 
