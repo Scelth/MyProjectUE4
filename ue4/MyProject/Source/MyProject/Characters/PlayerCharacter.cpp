@@ -154,6 +154,7 @@ void APlayerCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	UpdateSpringArm(DeltaTime);
+	AimingTimeline.TickTimeline(DeltaTime);
 }
 
 void APlayerCharacter::OnStartAimingInternal()
@@ -161,17 +162,30 @@ void APlayerCharacter::OnStartAimingInternal()
 	Super::OnStartAimingInternal();
 
 	APlayerController* PlayerController = GetController<APlayerController>();
-
 	if (!IsValid(PlayerController))
 	{
 		return;
 	}
 
 	APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
-
-	if (IsValid(CameraManager))
+	if (!IsValid(CameraManager))
 	{
-		ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+		return;
+	}
+
+	ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
+
+	if (AimingCurve)
+	{
+		FOnTimelineFloat TimelineCallback;
+		TimelineCallback.BindUFunction(this, FName("UpdateFOV"));
+
+		AimingTimeline.AddInterpFloat(AimingCurve, TimelineCallback);
+		AimingTimeline.PlayFromStart();
+	}
+
+	else
+	{
 		CameraManager->SetFOV(CurrentRangeWeapon->GetAimFOV());
 	}
 }
@@ -181,19 +195,48 @@ void APlayerCharacter::OnStopAimingInternal()
 	Super::OnStopAimingInternal();
 
 	APlayerController* PlayerController = GetController<APlayerController>();
-
 	if (!IsValid(PlayerController))
 	{
 		return;
 	}
 
 	APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
-
-	if (IsValid(CameraManager))
+	if (!IsValid(CameraManager))
 	{
-		ARangeWeaponItem* CurrentRangeWeapon = GetCharacterEquipmentComponent()->GetCurrentRangeWeapon();
-		CameraManager->UnlockFOV();
+		return;
 	}
+
+	if (AimingCurve)
+	{
+		FOnTimelineFloat TimelineCallback;
+		TimelineCallback.BindUFunction(this, FName("UpdateFOV"));
+
+		AimingTimeline.AddInterpFloat(AimingCurve, TimelineCallback);
+		AimingTimeline.ReverseFromEnd();
+	}
+
+	else
+	{
+		CameraManager->SetFOV(DefaultFOV);
+	}
+}
+
+void APlayerCharacter::UpdateFOV(float Value)
+{
+	APlayerController* PlayerController = GetController<APlayerController>();
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	APlayerCameraManager* CameraManager = PlayerController->PlayerCameraManager;
+	if (!IsValid(CameraManager))
+	{
+		return;
+	}
+
+	float NewFOV = FMath::Lerp(DefaultFOV, AimingFOV, Value);
+	CameraManager->SetFOV(NewFOV);
 }
 
 void APlayerCharacter::UpdateSpringArm(float DeltaTime)

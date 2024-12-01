@@ -79,6 +79,12 @@ public:
 	void SetIsOutOfStamina(bool bIsOutOfStamina_In) { bIsOutOfStamina = bIsOutOfStamina_In; }
 #pragma endregion
 
+#pragma region Sliding
+	bool IsSliding() const { return bIsSliding; }
+	void StartSlide();
+	void StopSlide();
+#pragma endregion
+
 #pragma region Prone
 	bool IsProning() const { return bIsProning; }
 	void StartProne();
@@ -135,6 +141,15 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Sprint", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float SprintSpeed = 1200.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement | Slide", meta = (ClampMin = "0", UIMin = "0"))
+	float MaxSlideSpeed = 1000.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement | Slide", meta = (ClampMin = "0", UIMin = "0"))
+	float SlideCaspsuleHalfHeight = 60.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character Movement | Slide", meta = (ClampMin = "0", UIMin = "0"))
+	float SlideMaxTime = 2.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character movement | Prone", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float ProneCapsuleRadius = 40.f;
 
@@ -174,9 +189,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MaxWallRunSpeed = 1000.0f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Character movement | Zipline", meta = (ClampMin = 0.f, UIMin = 0.f))
-	float ZiplineToCharacterOffset = 60.f;
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | Zipline", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MaxZiplineSpeed = 1000.0f;
 #pragma endregion
@@ -185,6 +197,7 @@ private:
 #pragma region Property
 	bool bIsSprinting = false;
 	bool bIsProning = false;
+	bool bIsSliding = false;
 	bool bIsOutOfStamina = false;
 	bool bIsMantling = false;
 	bool bIsForceRotation = false;
@@ -201,6 +214,7 @@ private:
 	FMantlingMovementParameters CurrentMantlingParameters;
 
 	FTimerHandle MantlingTimer;
+	FTimerHandle SlidingTimer;
 
 	FRotator ForceTargetRotation = FRotator::ZeroRotator;
 

@@ -58,6 +58,11 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = MaxZiplineSpeed;
 	}
 
+	if (IsSliding())
+	{
+		Result = MaxSlideSpeed;
+	}
+
 	return Result;
 }
 
@@ -355,6 +360,59 @@ void UMPBaseCharacterMovementComponent::StopSprint()
 {
 	bIsSprinting = false;
 	bForceMaxAccel = false;
+}
+#pragma endregion
+
+#pragma region Sliding
+void UMPBaseCharacterMovementComponent::StartSlide()
+{
+	if (bIsSliding)
+	{
+		return;
+	}
+
+	bIsSliding = true;
+
+	//GetWorld()->GetTimerManager().SetTimer(SlidingTimer, this, &UMPBaseCharacterMovementComponent::StopSlide, SlideMaxTime, false);
+
+	float DefaultCapsuleHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+
+	// Смещение капсулы вниз
+	FVector CapsuleOffset(0.0f, 0.0f, DefaultCapsuleHalfHeight - SlideCaspsuleHalfHeight);
+	GetBaseCharacterOwner()->AddActorWorldOffset(-CapsuleOffset);
+
+	FRotator TargetOrientationRotation = GetBaseCharacterOwner()->GetActorForwardVector().ToOrientationRotator();
+	GetOwner()->SetActorRotation(TargetOrientationRotation);
+
+	// Уведомление о смене размера капсулы
+	//BaseCharacter->OnCapsuleResized(SlideCaspsuleHalfHeight);
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleHalfHeight(SlideCaspsuleHalfHeight);
+
+	// Установка скорости скольжения
+	Velocity = GetBaseCharacterOwner()->GetActorForwardVector() * GetMaxSpeed();
+
+	// Отключение управления игроком
+	GetBaseCharacterOwner()->DisableInput(nullptr);
+}
+
+void UMPBaseCharacterMovementComponent::StopSlide()
+{
+	if (!bIsSliding)
+	{
+		return;
+	}
+
+	bIsSliding = false;
+
+	GetWorld()->GetTimerManager().ClearTimer(SlidingTimer);
+
+	float DefaultCapsuleHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+
+	FVector CapsuleOffset(0.0f, 0.0f, SlideCaspsuleHalfHeight - DefaultCapsuleHalfHeight);
+
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleHalfHeight(DefaultCapsuleHalfHeight);
+
+	GetBaseCharacterOwner()->EnableInput(nullptr);
 }
 #pragma endregion
 

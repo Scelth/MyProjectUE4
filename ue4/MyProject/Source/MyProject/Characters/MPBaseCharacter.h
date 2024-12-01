@@ -82,6 +82,7 @@ public:
 	virtual void StartSprint();
 	virtual void StopSprint();
 
+	void Sliding();
 	void StartFire();
 	void StopFire();
 	void StartAiming();

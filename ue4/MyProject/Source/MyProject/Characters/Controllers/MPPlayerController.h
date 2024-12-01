@@ -35,6 +35,7 @@ private:
 	void ClimbLadderUp(float Value);
 
 	// Action
+	void Sliding();
 	void ChangeCrouchState();
 	void ChangeProneState();
 	void Mantle();

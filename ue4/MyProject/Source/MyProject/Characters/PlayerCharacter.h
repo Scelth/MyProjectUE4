@@ -54,16 +54,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Aiming")
 	class UCurveFloat* AimingCurve;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Aiming")
+	float DefaultFOV = 90.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Aiming")
+	float AimingFOV = 60.f;
+
+	FTimeline AimingTimeline;
+
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnStartAimingInternal() override;
 	virtual void OnStopAimingInternal() override;
 
 private:
 	float CameraBaseSpeedMultiplier = 1.f;
-	float DefaultFOV = 90.f; 
-	float AimingFOV = 60.f; 
-
-	FTimeline AimingTimeline; 
 	
 	void UpdateSpringArm(float DeltaTime);
+
+	UFUNCTION()
+	void UpdateFOV(float Value);
 };

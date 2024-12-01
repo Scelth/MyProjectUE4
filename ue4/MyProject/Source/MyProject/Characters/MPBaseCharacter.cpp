@@ -57,6 +57,11 @@ void AMPBaseCharacter::ClimbLadderUp(float Value)
 #pragma region Mantle
 void AMPBaseCharacter::Mantle(bool bForce /*= false*/)
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (!(CanMantle() || bForce))
 	{
 		return;
@@ -136,6 +141,11 @@ const FMantlingSettings& AMPBaseCharacter::GetMantlingSettings(float LedgeHeight
 #pragma region Jump
 void AMPBaseCharacter::Jump()
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (GetBaseCharacterMovementComponent()->IsOnWall())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->DetachFromWall(EDetachFromInteractionMethod::JumpOff);
@@ -162,10 +172,25 @@ bool AMPBaseCharacter::CanJumpInternal_Implementation() const
 }
 #pragma endregion
 
+#pragma region Sliding
+void AMPBaseCharacter::Sliding()
+{
+	if (GetBaseCharacterMovementComponent()->IsSprinting())
+	{
+		GetBaseCharacterMovementComponent_Mutable()->StartSlide();
+	}
+}
+#pragma endregion
+
 #pragma region Change Crouch and Prone States
 void AMPBaseCharacter::ChangeCrouchState()
 {
 	if (GetBaseCharacterMovementComponent()->IsProning())
+	{
+		return;
+	}
+
+	if (GetBaseCharacterMovementComponent()->IsSliding())
 	{
 		return;
 	}
@@ -183,6 +208,11 @@ void AMPBaseCharacter::ChangeCrouchState()
 
 void AMPBaseCharacter::ChangeProneState()
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (GetCharacterMovement()->IsCrouching() && !GetBaseCharacterMovementComponent()->IsProning())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->StartProne();
@@ -199,6 +229,11 @@ void AMPBaseCharacter::ChangeProneState()
 void AMPBaseCharacter::StartSprint()
 {
 	if (GetBaseCharacterMovementComponent()->IsProning())
+	{
+		return;
+	}
+
+	if (GetBaseCharacterMovementComponent()->IsSliding())
 	{
 		return;
 	}
@@ -223,6 +258,11 @@ bool AMPBaseCharacter::CanSprint()
 
 void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint() && !GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->StartSprint();
@@ -341,6 +381,11 @@ void AMPBaseCharacter::FiringMode()
 #pragma region Interaction
 void AMPBaseCharacter::InteractWithLadder()
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (GetBaseCharacterMovementComponent()->IsOnLadder())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->DetachFromLadder(EDetachFromInteractionMethod::JumpOff);
@@ -380,6 +425,11 @@ const ALadder* AMPBaseCharacter::GetAvailableLadder() const
 
 void AMPBaseCharacter::InteractWithZipline()
 {
+	if (GetBaseCharacterMovementComponent()->IsSliding())
+	{
+		return;
+	}
+
 	if (GetBaseCharacterMovementComponent()->IsOnZipline())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->DetachFromZipline();
@@ -391,11 +441,6 @@ void AMPBaseCharacter::InteractWithZipline()
 
 		if (IsValid(AvailableZipline))
 		{
-			//if (AvailableZipline->IsOnTop())
-			//{
-			//	PlayAnimMontage(AvailableZipline->GetAttachFromTopAnimMontage());
-			//}
-
 			GetBaseCharacterMovementComponent_Mutable()->AttachToZipline(AvailableZipline);
 		}
 	}

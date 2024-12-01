@@ -37,6 +37,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("InteractWithZipline", EInputEvent::IE_Pressed, this, &AMPPlayerController::InteractWithZipline);
 	InputComponent->BindAction("Mantle", EInputEvent::IE_Pressed, this, &AMPPlayerController::Mantle);
 	InputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &AMPPlayerController::Jump);
+	InputComponent->BindAction("Sliding", EInputEvent::IE_Pressed, this, &AMPPlayerController::Sliding);
 	InputComponent->BindAction("Crouch", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeCrouchState);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Pressed, this, &AMPPlayerController::StartSprint);
 	InputComponent->BindAction("Sprint", EInputEvent::IE_Released, this, &AMPPlayerController::StopSprint);
@@ -162,6 +163,14 @@ void AMPPlayerController::ClimbLadderUp(float Value)
 #pragma endregion 
 
 #pragma region Action
+void AMPPlayerController::Sliding()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Sliding();
+	}
+}
+
 void AMPPlayerController::ChangeCrouchState()
 {
 	if (CachedBaseCharacter.IsValid())
