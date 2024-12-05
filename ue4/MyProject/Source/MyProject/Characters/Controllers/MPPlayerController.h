@@ -50,7 +50,7 @@ private:
 	void PreviousItem();
 	void EquipPrimaryItem();
 	void Reload();
-	void FiringMode();
+	void ChangeFiringMode();
 	void InteractWithLadder();
 	void InteractWithZipline();
 };

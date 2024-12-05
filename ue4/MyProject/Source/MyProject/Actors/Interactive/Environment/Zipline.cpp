@@ -56,21 +56,27 @@ void AZipline::ScalePillar(UStaticMeshComponent* PillarMeshComponent)
 
 void AZipline::ScaleCable()
 {
-    const FVector LeftPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
-    const FVector RightPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
-    const FVector CableLocation = (LeftPillarPos + RightPillarPos) * 0.5f;
-    const FVector CableDirection = (RightPillarPos - LeftPillarPos).GetSafeNormal();
+    const FVector LowerPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
+    const FVector UpperPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
+
+    FVector CableStart = LowerPillarPos;
+    CableStart.Z += PillarHeight * 0.4f;
+
+    FVector CableEnd = UpperPillarPos;
+    CableEnd.Z += PillarHeight * 0.4f;
+
+    const FVector CableLocation = (CableStart + CableEnd) * 0.5f;
+    const FVector CableDirection = (CableEnd - CableStart).GetSafeNormal();
     const FQuat CableRotation = FQuat::FindBetweenVectors(FVector::ForwardVector, CableDirection);
 
-    UStaticMesh* StepsMesh = CableMeshComponent->GetStaticMesh();
-
-    if (IsValid(StepsMesh))
+    UStaticMesh* CableMesh = CableMeshComponent->GetStaticMesh();
+    if (IsValid(CableMesh))
     {
-        float MeshWidth = StepsMesh->GetBoundingBox().GetSize().X;
+        const float MeshWidth = CableMesh->GetBoundingBox().GetSize().X;
 
         if (!FMath::IsNearlyZero(MeshWidth))
         {
-            float Length = FVector::Dist(LeftPillarPos, RightPillarPos);
+            const float Length = FVector::Dist(CableStart, CableEnd);
             CableMeshComponent->SetRelativeScale3D(FVector(Length / MeshWidth, 1.f, 1.f));
         }
     }
@@ -83,12 +89,19 @@ void AZipline::ScaleCable()
 
 void AZipline::ScaleInteractionCapsule()
 {
-    const FVector LeftPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
-    const FVector RightPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
-    const FVector CapsuleLocation = (LeftPillarPos + RightPillarPos) * 0.5f;
-    const FVector CapsuleDirection = (RightPillarPos - LeftPillarPos).GetSafeNormal();
+    const FVector LowerPillarPos = LowerPillarMeshComponent->GetRelativeLocation();
+    const FVector UpperPillarPos = UpperPillarMeshComponent->GetRelativeLocation();
+
+    FVector CapsuleStart = LowerPillarPos;
+    CapsuleStart.Z += PillarHeight * 0.4f;
+
+    FVector CapsuleEnd = UpperPillarPos;
+    CapsuleEnd.Z += PillarHeight * 0.4f;
+
+    const FVector CapsuleLocation = (CapsuleStart + CapsuleEnd) * 0.5f;
+    const FVector CapsuleDirection = (CapsuleEnd - CapsuleStart).GetSafeNormal();
     const FQuat CapsuleRotation = FQuat::FindBetweenVectors(FVector::UpVector, CapsuleDirection);
-    const float CapsuleHalfHeight = FVector::Dist(LeftPillarPos, RightPillarPos) * 0.5f;
+    const float CapsuleHalfHeight = FVector::Dist(CapsuleStart, CapsuleEnd) * 0.5f;
 
     GetPillarInteractionCapsuleVolume()->SetRelativeLocation(CapsuleLocation);
     GetPillarInteractionCapsuleVolume()->SetRelativeRotation(CapsuleRotation);

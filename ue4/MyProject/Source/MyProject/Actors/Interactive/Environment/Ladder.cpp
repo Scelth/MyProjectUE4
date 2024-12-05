@@ -10,11 +10,11 @@ ALadder::ALadder()
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("LadderRoot"));
 
 	LeftRailMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LeftRail"));
-	LeftRailMeshComponent->SetupAttachment(RootComponent);	
-	
+	LeftRailMeshComponent->SetupAttachment(RootComponent);
+
 	RightRailMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RightRail"));
-	RightRailMeshComponent->SetupAttachment(RootComponent);	
-	
+	RightRailMeshComponent->SetupAttachment(RootComponent);
+
 	StepsMeshComponent = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("Steps"));
 	StepsMeshComponent->SetupAttachment(RootComponent);
 
@@ -43,7 +43,6 @@ void ALadder::OnConstruction(const FTransform& Transform)
 	RightRailMeshComponent->SetRelativeLocation(FVector(0.f, LadderWidth * 0.5f, LadderHeight * 0.5f));
 
 	UStaticMesh* LeftRailMesh = LeftRailMeshComponent->GetStaticMesh();
-
 	if (IsValid(LeftRailMesh))
 	{
 		float MeshHeight = LeftRailMesh->GetBoundingBox().GetSize().Z;
@@ -54,11 +53,10 @@ void ALadder::OnConstruction(const FTransform& Transform)
 		}
 	}
 
-	UStaticMesh* RightRailMesh = RightRailMeshComponent->GetStaticMesh();
-
-	if (IsValid(RightRailMesh))
+	UStaticMesh* RighRailMesh = RightRailMeshComponent->GetStaticMesh();
+	if (IsValid(RighRailMesh))
 	{
-		float MeshHeight = RightRailMesh->GetBoundingBox().GetSize().Z;
+		float MeshHeight = RighRailMesh->GetBoundingBox().GetSize().Z;
 
 		if (!FMath::IsNearlyZero(MeshHeight))
 		{
@@ -67,7 +65,6 @@ void ALadder::OnConstruction(const FTransform& Transform)
 	}
 
 	UStaticMesh* StepsMesh = StepsMeshComponent->GetStaticMesh();
-
 	if (IsValid(StepsMesh))
 	{
 		float MeshWidth = StepsMesh->GetBoundingBox().GetSize().X;
@@ -82,10 +79,9 @@ void ALadder::OnConstruction(const FTransform& Transform)
 
 	uint32 StepsCount = FMath::FloorToInt((LadderHeight - BottomStepOffset) / StepsInterval);
 
-	for (uint32 i = 0; i < StepsCount; i++)
+	for (uint32 i = 0; i < StepsCount; ++i)
 	{
 		FTransform InstanceTransform(FVector(1.f, 1.f, BottomStepOffset + i * StepsInterval));
-
 		StepsMeshComponent->AddInstance(InstanceTransform);
 	}
 

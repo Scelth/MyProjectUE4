@@ -11,6 +11,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "AIController.h"
 
 #pragma region Base
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -39,6 +40,20 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 
 	UpdateIKSettings(DeltaTime);
 }
+
+void AMPBaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AAIController* AIController = Cast<AAIController>(NewController);
+
+	if (IsValid(AIController))
+	{
+		FGenericTeamId TeamID((uint8)Team);
+
+		AIController->SetGenericTeamId(TeamID);
+	}
+}
 #pragma endregion
 
 #pragma region Axis
@@ -57,10 +72,10 @@ void AMPBaseCharacter::ClimbLadderUp(float Value)
 #pragma region Mantle
 void AMPBaseCharacter::Mantle(bool bForce /*= false*/)
 {
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	if (!(CanMantle() || bForce))
 	{
@@ -141,10 +156,10 @@ const FMantlingSettings& AMPBaseCharacter::GetMantlingSettings(float LedgeHeight
 #pragma region Jump
 void AMPBaseCharacter::Jump()
 {
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	if (GetBaseCharacterMovementComponent()->IsOnWall())
 	{
@@ -175,10 +190,10 @@ bool AMPBaseCharacter::CanJumpInternal_Implementation() const
 #pragma region Sliding
 void AMPBaseCharacter::Sliding()
 {
-	if (GetBaseCharacterMovementComponent()->IsSprinting())
-	{
-		GetBaseCharacterMovementComponent_Mutable()->StartSlide();
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSprinting())
+	//{
+	//	GetBaseCharacterMovementComponent_Mutable()->StartSlide();
+	//}
 }
 #pragma endregion
 
@@ -190,10 +205,10 @@ void AMPBaseCharacter::ChangeCrouchState()
 		return;
 	}
 
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	if (GetCharacterMovement()->IsCrouching())
 	{
@@ -208,10 +223,10 @@ void AMPBaseCharacter::ChangeCrouchState()
 
 void AMPBaseCharacter::ChangeProneState()
 {
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	if (GetCharacterMovement()->IsCrouching() && !GetBaseCharacterMovementComponent()->IsProning())
 	{
@@ -233,10 +248,10 @@ void AMPBaseCharacter::StartSprint()
 		return;
 	}
 
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	bIsSprintRequested = true;
 
@@ -258,10 +273,10 @@ bool AMPBaseCharacter::CanSprint()
 
 void AMPBaseCharacter::TryChangeSprintState(float DeltaTime)
 {
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
+	//if (GetBaseCharacterMovementComponent()->IsSliding())
+	//{
+	//	return;
+	//}
 
 	if (bIsSprintRequested && !GetBaseCharacterMovementComponent()->IsSprinting() && CanSprint() && !GetBaseCharacterMovementComponent()->IsOutOfStamina())
 	{
@@ -372,7 +387,7 @@ void AMPBaseCharacter::ReloadCurrentRangeWeapon()
 	}
 }
 
-void AMPBaseCharacter::FiringMode()
+void AMPBaseCharacter::ChangeFiringMode()
 {
 
 }
@@ -425,11 +440,6 @@ const ALadder* AMPBaseCharacter::GetAvailableLadder() const
 
 void AMPBaseCharacter::InteractWithZipline()
 {
-	if (GetBaseCharacterMovementComponent()->IsSliding())
-	{
-		return;
-	}
-
 	if (GetBaseCharacterMovementComponent()->IsOnZipline())
 	{
 		GetBaseCharacterMovementComponent_Mutable()->DetachFromZipline();
@@ -538,6 +548,13 @@ void AMPBaseCharacter::RegisterInteractiveActor(AInteractiveActor* InteractiveAc
 void AMPBaseCharacter::UnregisterInteractiveActor(AInteractiveActor* InteractiveActor)
 {
 	AvaibleInteractiveActors.RemoveSingleSwap(InteractiveActor);
+}
+#pragma endregion
+
+#pragma region IGenericTeamAgentInterface
+FGenericTeamId AMPBaseCharacter::GetGenericTeamId() const
+{
+	return FGenericTeamId((uint8)Team);
 }
 #pragma endregion
 

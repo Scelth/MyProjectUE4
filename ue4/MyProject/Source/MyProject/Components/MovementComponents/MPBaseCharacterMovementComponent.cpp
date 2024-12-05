@@ -195,6 +195,8 @@ void UMPBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 		case (uint8)ECustomMovementMode::CMOVE_WallRun:
 		{
 			PhysWallRun(DeltaTime, Iterations);
+			LastWallRunDirection = FVector::ZeroVector;
+			LastWallRunSide = EWallRunSide::None;
 			break;
 		}		
 		
@@ -239,21 +241,20 @@ void UMPBaseCharacterMovementComponent::PhysMantling(float DeltaTime, int32 Iter
 void UMPBaseCharacterMovementComponent::PhysLadder(float DeltaTime, int32 Iterations)
 {
 	CalcVelocity(DeltaTime, 1.f, false, ClimbingOnLadderBrakingDeceleration);
-
 	FVector Delta = Velocity * DeltaTime;
 
 	FRotator TargetOrientationRotation = CurrentLadder->GetActorForwardVector().ToOrientationRotator();
+	TargetOrientationRotation.Yaw = 180.f;
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
 
 	if (HasAnimRootMotion())
 	{
 		FHitResult Hit;
-
 		SafeMoveUpdatedComponent(Delta, GetOwner()->GetActorRotation(), false, Hit);
+		return;
 	}
 
 	FVector NewPos = GetActorLocation() + Delta;
-
 	float NewPosProjection = GetActorToCurrentLadderProjection(NewPos);
 
 	if (NewPosProjection < MinLadderBottomOffset)
@@ -287,7 +288,7 @@ void UMPBaseCharacterMovementComponent::PhysWallRun(float DeltaTime, int32 itera
 	FHitResult HitResult;
 
 	FVector LineTraceDirection = CurrentWallRunSide == EWallRunSide::Right ? GetOwner()->GetActorRightVector() : -GetOwner()->GetActorRightVector();
-	float LineTraceLength = 200.0f;
+	float LineTraceLength = 200.f;
 
 	FVector StartPosition = GetActorLocation();
 	FVector EndPosition = StartPosition + LineTraceLength * LineTraceDirection;
@@ -377,21 +378,17 @@ void UMPBaseCharacterMovementComponent::StartSlide()
 
 	float DefaultCapsuleHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
-	// Смещение капсулы вниз
-	FVector CapsuleOffset(0.0f, 0.0f, DefaultCapsuleHalfHeight - SlideCaspsuleHalfHeight);
+	FVector CapsuleOffset(0.f, 0.f, DefaultCapsuleHalfHeight - SlideCaspsuleHalfHeight);
 	GetBaseCharacterOwner()->AddActorWorldOffset(-CapsuleOffset);
 
 	FRotator TargetOrientationRotation = GetBaseCharacterOwner()->GetActorForwardVector().ToOrientationRotator();
 	GetOwner()->SetActorRotation(TargetOrientationRotation);
 
-	// Уведомление о смене размера капсулы
 	//BaseCharacter->OnCapsuleResized(SlideCaspsuleHalfHeight);
 	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleHalfHeight(SlideCaspsuleHalfHeight);
 
-	// Установка скорости скольжения
 	Velocity = GetBaseCharacterOwner()->GetActorForwardVector() * GetMaxSpeed();
 
-	// Отключение управления игроком
 	GetBaseCharacterOwner()->DisableInput(nullptr);
 }
 
@@ -408,7 +405,7 @@ void UMPBaseCharacterMovementComponent::StopSlide()
 
 	float DefaultCapsuleHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
-	FVector CapsuleOffset(0.0f, 0.0f, SlideCaspsuleHalfHeight - DefaultCapsuleHalfHeight);
+	FVector CapsuleOffset(0.f, 0.f, SlideCaspsuleHalfHeight - DefaultCapsuleHalfHeight);
 
 	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleHalfHeight(DefaultCapsuleHalfHeight);
 
@@ -499,11 +496,10 @@ void UMPBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	FVector LadderForwardVector = CurrentLadder->GetActorForwardVector();
-
 	float Projection = GetActorToCurrentLadderProjection(GetActorLocation());
 
 	FVector NewCharacterLocation = CurrentLadder->GetActorLocation() + Projection * LadderUpVector + LadderToCharacterOffset * LadderForwardVector;
-
+	
 	if (CurrentLadder->IsOnTop())
 	{
 		NewCharacterLocation = CurrentLadder->GetAttachFromTopAnimMontageStartingLocation();
@@ -519,7 +515,7 @@ float UMPBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const
 {
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	FVector LadderToCharacterDistance = Location - CurrentLadder->GetActorLocation();
-
+	
 	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
 }
 
@@ -527,6 +523,20 @@ void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromInteractionM
 {
 	switch (DetachFromLadderMethod)
 	{
+		case EDetachFromInteractionMethod::JumpOff:
+		{
+			FVector JumpDirection = CurrentLadder->GetActorForwardVector();
+			SetMovementMode(MOVE_Falling);
+
+			FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
+
+			ForceTargetRotation = JumpDirection.ToOrientationRotator();
+			bIsForceRotation = true;
+
+			Launch(JumpVelocity);
+			break;
+		}
+
 		case EDetachFromInteractionMethod::ReachingTheTop:
 		{
 			GetBaseCharacterOwner()->Mantle(true);
@@ -538,22 +548,6 @@ void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromInteractionM
 			SetMovementMode(MOVE_Walking);
 			break;
 		}
-
-		case EDetachFromInteractionMethod::JumpOff:
-		{
-			FVector JumpDirection = CurrentLadder->GetActorForwardVector();
-			FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
-			
-			SetMovementMode(MOVE_Falling);
-
-			ForceTargetRotation = JumpDirection.ToOrientationRotator();
-
-			bIsForceRotation = true;
-
-			Launch(JumpVelocity);
-			break;
-		}
-
 		case EDetachFromInteractionMethod::Fall:
 		default:
 		{
@@ -561,8 +555,6 @@ void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromInteractionM
 			break;
 		}
 	}
-
-	SetMovementMode(MOVE_Falling);
 }
 
 bool UMPBaseCharacterMovementComponent::IsOnLadder() const
@@ -582,6 +574,7 @@ void UMPBaseCharacterMovementComponent::AttachToWall(EWallRunSide Side, const FV
 {
 	CurrentWallRunSide = Side;
 	CurrentWallRunDirection = Direction;
+	GravityScale = 0.f;
 
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_WallRun);
 }
@@ -589,6 +582,7 @@ void UMPBaseCharacterMovementComponent::AttachToWall(EWallRunSide Side, const FV
 void UMPBaseCharacterMovementComponent::DetachFromWall(EDetachFromInteractionMethod DetachFromWallMethod)
 {
 	WallRunTimeElapsed = 0.f;
+	GravityScale = 1.f;
 
 	switch (DetachFromWallMethod)
 	{
@@ -618,8 +612,6 @@ void UMPBaseCharacterMovementComponent::DetachFromWall(EDetachFromInteractionMet
 			break;
 		}
 	}
-
-	SetMovementMode(MOVE_Falling);
 }
 
 void UMPBaseCharacterMovementComponent::GetWallRunSideAndDirection(const FVector& HitNormal, EWallRunSide& OutSide, FVector& OutDirection) const
@@ -660,9 +652,23 @@ void UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit(UPrimitiveComponent* 
 		return;
 	}
 
+	float Angle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(Hit.ImpactNormal, FVector::UpVector)));
+	if (Angle > MaxWallRunAngle)
+	{
+		return;
+	}
+
 	EWallRunSide Side = EWallRunSide::None;
 	FVector Direction = FVector::ZeroVector;
 	FVector HitNormal = Hit.ImpactNormal;
+
+	if (LastWallRunDirection == HitNormal && LastWallRunSide == Side)
+	{
+		return;
+	}
+
+	LastWallRunSide = Side;
+	LastWallRunDirection = HitNormal;
 
 	GetWallRunSideAndDirection(HitNormal, Side, Direction);
 
@@ -678,10 +684,7 @@ void UMPBaseCharacterMovementComponent::AttachToZipline(const AZipline* Zipline)
 	FVector StartPoint = CurrentZipline->GetUpperPillarMeshComponent()->GetComponentLocation();
 	FVector ClosestPoint = FMath::ClosestPointOnSegment(GetOwner()->GetActorLocation(), StartPoint, CurrentZipline->GetLowerPillarMeshComponent()->GetComponentLocation());
 
-	float CapsuleHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-	FVector AdjustedPosition = ClosestPoint - (GetOwner()->GetActorUpVector() * CapsuleHeight);
-
-	GetOwner()->SetActorLocation(AdjustedPosition);
+	GetOwner()->SetActorLocation(ClosestPoint);
 
 	SetMovementMode(MOVE_Custom, (uint8)ECustomMovementMode::CMOVE_Zipline);
 }

@@ -2,6 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "MyProject/MPTypes.h"
+#include "GenericTeamAgentInterface.h"
 #include "MPBaseCharacter.generated.h"
 
 #pragma region Mantling Settings
@@ -46,7 +48,7 @@ class AInteractiveActor;
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
 
 UCLASS(Abstract, NotBlueprintable)
-class MYPROJECT_API AMPBaseCharacter : public ACharacter
+class MYPROJECT_API AMPBaseCharacter : public ACharacter, public IGenericTeamAgentInterface
 {
 	GENERATED_BODY()
 
@@ -58,6 +60,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	virtual void PossessedBy(AController* NewController) override;
 #pragma endregion
 
 #pragma region Axis
@@ -91,7 +94,7 @@ public:
 	void PreviousItem();
 	void EquipPrimaryItem();
 	void ReloadCurrentRangeWeapon();
-	void FiringMode();
+	void ChangeFiringMode();
 	void InteractWithLadder();
 	void InteractWithZipline();
 #pragma endregion
@@ -111,6 +114,10 @@ public:
 	virtual void Falling() override;
 	virtual void Landed(const FHitResult& Hit) override;
 	virtual void NotifyJumpApex() override;
+#pragma endregion
+
+#pragma region IGenericTeamAgentInterface
+	virtual FGenericTeamId GetGenericTeamId() const override;
 #pragma endregion
 
 #pragma region Getters
@@ -174,6 +181,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
 	UCharacterEquipmentComponent* CharacterEquipmentComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
+	ETeams Team = ETeams::None;
 #pragma endregion
 
 #pragma region Sprint

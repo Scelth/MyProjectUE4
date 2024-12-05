@@ -187,6 +187,9 @@ protected:
 	float MaxWallRunTime = 2.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float MaxWallRunAngle = 90.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | WallRun", meta = (ClampMin = 0.f, UIMin = 0.f))
 	float MaxWallRunSpeed = 1000.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character movement | Zipline", meta = (ClampMin = 0.f, UIMin = 0.f))
@@ -220,6 +223,9 @@ private:
 
 	FVector CurrentWallRunDirection = FVector::ZeroVector;
 	EWallRunSide CurrentWallRunSide = EWallRunSide::None;
+
+	FVector LastWallRunDirection = FVector::ZeroVector;
+	EWallRunSide LastWallRunSide = EWallRunSide::None;
 
 	const ALadder* CurrentLadder = nullptr;
 	const AZipline* CurrentZipline = nullptr;

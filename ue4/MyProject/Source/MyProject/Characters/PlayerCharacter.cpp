@@ -25,6 +25,8 @@ APlayerCharacter::APlayerCharacter(const FObjectInitializer& ObjectInitializer)
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f);
 
 	InitialSpringArmLength = SpringArmComponent->TargetArmLength;
+
+	Team = ETeams::Player;
 }
 
 void APlayerCharacter::MoveForward(float Value)

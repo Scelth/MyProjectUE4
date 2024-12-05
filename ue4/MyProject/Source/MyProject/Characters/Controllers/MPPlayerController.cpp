@@ -50,7 +50,7 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("PreviousItem", EInputEvent::IE_Released, this, &AMPPlayerController::PreviousItem);
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AMPPlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AMPPlayerController::Reload);
-	InputComponent->BindAction("FiringMode", EInputEvent::IE_Pressed, this, &AMPPlayerController::FiringMode);
+	InputComponent->BindAction("ChangeFiringMode", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeFiringMode);
 }
 
 void AMPPlayerController::CreateAndInitializeWidgets()
@@ -283,11 +283,11 @@ void AMPPlayerController::Reload()
 	}
 }
 
-void AMPPlayerController::FiringMode()
+void AMPPlayerController::ChangeFiringMode()
 {
 	if (CachedBaseCharacter.IsValid())
 	{
-		CachedBaseCharacter->FiringMode();
+		CachedBaseCharacter->ChangeFiringMode();
 	}
 }
 
