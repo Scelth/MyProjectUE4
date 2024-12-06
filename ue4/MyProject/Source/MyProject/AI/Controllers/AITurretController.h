@@ -16,7 +16,6 @@ public:
 
 	virtual void SetPawn(APawn* InPawn) override;
 	virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors) override;
-	//void ReportDamageEventToAI(AActor* DamagedActor, AActor* Instigator, float DamageAmount, FVector EventLocation, FVector HitLocation);
 
 private:
 

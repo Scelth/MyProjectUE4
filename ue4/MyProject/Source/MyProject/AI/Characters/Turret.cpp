@@ -1,8 +1,10 @@
 #include "Turret.h"
-#include "MyProject/Components/WeaponComponents/WeaponBarellComponent.h"
 #include "AIController.h"
 #include <Perception/AISense_Damage.h>
-#include <MyProject/AI/Controllers/AITurretController.h>
+#include "MyProject/Components/WeaponComponents/WeaponBarellComponent.h"
+#include "MyProject/AI/Controllers/AITurretController.h"
+#include "MyProject/Components/AIComponents/AIAttributesComponent.h"
+#include "MyProject/Components/WeaponComponents/ExplosionComponent.h"
 
 ATurret::ATurret()
 {
@@ -19,6 +21,17 @@ ATurret::ATurret()
 
 	WeaponBarell = CreateDefaultSubobject<UWeaponBarellComponent>(TEXT("WeaponBarell"));
 	WeaponBarell->SetupAttachment(TurretBarellComponent);
+
+	AttributesComponent = CreateDefaultSubobject<UAIAttributesComponent>(TEXT("AttributesComponent"));
+
+	ExplosionComponent = CreateDefaultSubobject<UExplosionComponent>(TEXT("ExplosionComponent"));
+}
+
+void ATurret::BeginPlay()
+{
+	Super::BeginPlay();
+
+	AttributesComponent->OnHealthChangedEvent.AddUObject(this, &ATurret::OnDestroy);
 }
 
 void ATurret::Tick(float DeltaTime)
@@ -54,35 +67,6 @@ void ATurret::PossessedBy(AController* NewController)
 		AIController->SetGenericTeamId(TeamID);
 	}
 }
-
-//float ATurret::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
-//{
-	//FVector HitLocation = DamageEvent.IsOfType(FPointDamageEvent::ClassID) ?
-	//	static_cast<const FPointDamageEvent&>(DamageEvent).HitInfo.ImpactPoint :
-	//	GetActorLocation();
-
-	//// Проверяем, есть ли AI-контроллер
-	//if (AAITurretController* TurretController = Cast<AAITurretController>(GetController()))
-	//{
-	//	TurretController->ReportDamageEventToAI(
-	//		this,             // DamagedActor
-	//		DamageCauser,     // Instigator
-	//		DamageAmount,     // DamageAmount
-	//		GetActorLocation(), // EventLocation
-	//		HitLocation       // HitLocation
-	//	);
-	//}
-
-	//float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-
-	//if (FinalDamage > 0.f)
-	//{
-	//	// Дополнительная логика: например, воспроизведение звука или визуального эффекта.
-	//	UE_LOG(LogTemp, Log, TEXT("Turret took damage: %f"), FinalDamage);
-	//}
-
-	//return FinalDamage;
-//}
 
 FVector ATurret::GetPawnViewLocation() const
 {
@@ -163,4 +147,14 @@ void ATurret::MakeShot()
 	float SpreadAngle = FMath::DegreesToRadians(BulletSpreadAngle);
 
 	WeaponBarell->Shot(ShotLocation, ShotDirection, SpreadAngle);
+}
+
+void ATurret::OnDestroy()
+{
+	ExplosionComponent->Explode(GetController());
+
+	SetActorHiddenInGame(true);
+	SetActorEnableCollision(false);
+	
+	Destroy();
 }

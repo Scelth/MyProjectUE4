@@ -9,6 +9,7 @@ const FName FXParamTraceEnd = FName("TraceEnd");
 
 const FName DebugCategoryLedgeDetection = FName("LedgeDetection");
 const FName DebugCategoryCharacterAttributes = FName("CharacterAttributes");
+const FName DebugCategoryAIAttributes = FName("AIAttributes");
 const FName DebugCategoryRangeWeapon = FName("RangeWeapon");
 
 const FName CollisionProfilePawn = FName("Pawn");

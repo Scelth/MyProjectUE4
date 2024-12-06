@@ -24,7 +24,7 @@ void UExplosionComponent::Explode(AController* Controller)
 
 	if (IsValid(ExplosionVFX))
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionVFX, GetComponentLocation());
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplosionVFX, GetOwner()->GetActorLocation());
 	}
 
 	if (OnExplosion.IsBound())

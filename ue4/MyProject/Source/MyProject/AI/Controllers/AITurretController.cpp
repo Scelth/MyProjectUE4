@@ -26,32 +26,40 @@ void AAITurretController::SetPawn(APawn* InPawn)
 
 void AAITurretController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
-	if (!CachedTurret.IsValid())
-	{
-		return;
-	}
+    if (!CachedTurret.IsValid())
+    {
+        return;
+    }
 
-	TArray<AActor*> SeenActors;
-	PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeenActors);
-	AActor* ClosestActor = nullptr;
-	FVector TurretLocation = CachedTurret->GetActorLocation();
-	float MinSquaredDistance = FLT_MAX;
+    TArray<AActor*> SeenActors;
+    PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeenActors);
 
-	for (AActor* SeenActor : SeenActors)
-	{
-		float CurrentSquareDistance = FVector::DistSquared(TurretLocation, SeenActor->GetActorLocation());
+    TArray<AActor*> DamagedActors;
+    PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Damage::StaticClass(), DamagedActors);
 
-		if (CurrentSquareDistance < MinSquaredDistance)
-		{
-			MinSquaredDistance = CurrentSquareDistance;
-			ClosestActor = SeenActor;
-		}
-	}
+    AActor* ClosestActor = nullptr;
+    FVector TurretLocation = CachedTurret->GetActorLocation();
+    float MinSquaredDistance = FLT_MAX;
 
-	CachedTurret->SetCurrentTarget(ClosestActor);
+    for (AActor* Actor : SeenActors)
+    {
+        float CurrentSquareDistance = FVector::DistSquared(TurretLocation, Actor->GetActorLocation());
+        if (CurrentSquareDistance < MinSquaredDistance)
+        {
+            MinSquaredDistance = CurrentSquareDistance;
+            ClosestActor = Actor;
+        }
+    }
+
+    for (AActor* Actor : DamagedActors)
+    {
+        float CurrentSquareDistance = FVector::DistSquared(TurretLocation, Actor->GetActorLocation());
+        if (CurrentSquareDistance < MinSquaredDistance)
+        {
+            MinSquaredDistance = CurrentSquareDistance;
+            ClosestActor = Actor;
+        }
+    }
+
+    CachedTurret->SetCurrentTarget(ClosestActor);
 }
-
-//void AAITurretController::ReportDamageEventToAI(AActor* DamagedActor, AActor* Instigator, float DamageAmount, FVector EventLocation, FVector HitLocation)
-//{
-//	UAISense_Damage::ReportDamageEvent(GetWorld(), DamagedActor, Instigator, DamageAmount, EventLocation, HitLocation);
-//}

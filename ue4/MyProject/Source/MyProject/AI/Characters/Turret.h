@@ -13,6 +13,8 @@ enum class ETurretState : uint8
 };
 
 class UWeaponBarellComponent;
+class UAIAttributesComponent;
+class UExplosionComponent;
 
 UCLASS()
 class MYPROJECT_API ATurret : public APawn
@@ -22,9 +24,9 @@ class MYPROJECT_API ATurret : public APawn
 public:	
 	ATurret();
 
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
-	//virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	virtual FVector GetPawnViewLocation() const override;
 	virtual FRotator GetViewRotation() const override;
 
@@ -67,6 +69,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Turret parameters | Team")
 	ETeams Team = ETeams::None;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UAIAttributesComponent* AttributesComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components")
+	UExplosionComponent* ExplosionComponent;
+
 private:
 	void SetCurrentTurretState(ETurretState NewState);
 	void SearchingMovement(float DeltaTime);
@@ -74,6 +82,9 @@ private:
 	void MakeShot();
 
 	float GetFireInterval() const { return 60.f / RateOfFire; }
+
+	UFUNCTION()
+	virtual void OnDestroy();
 
 	FTimerHandle ShotTimer;
 

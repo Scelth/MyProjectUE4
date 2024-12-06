@@ -53,10 +53,10 @@ void ALadder::OnConstruction(const FTransform& Transform)
 		}
 	}
 
-	UStaticMesh* RighRailMesh = RightRailMeshComponent->GetStaticMesh();
-	if (IsValid(RighRailMesh))
+	UStaticMesh* RightRailMesh = RightRailMeshComponent->GetStaticMesh();
+	if (IsValid(RightRailMesh))
 	{
-		float MeshHeight = RighRailMesh->GetBoundingBox().GetSize().Z;
+		float MeshHeight = RightRailMesh->GetBoundingBox().GetSize().Z;
 
 		if (!FMath::IsNearlyZero(MeshHeight))
 		{
