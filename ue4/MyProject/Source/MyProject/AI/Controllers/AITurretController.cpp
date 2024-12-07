@@ -1,13 +1,7 @@
 #include "AITurretController.h"
-#include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense_Damage.h"
 #include "MyProject/AI/Characters/Turret.h"
-
-AAITurretController::AAITurretController()
-{
-	PerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>(TEXT("TurretPerception"));
-}
 
 void AAITurretController::SetPawn(APawn* InPawn)
 {
@@ -26,40 +20,20 @@ void AAITurretController::SetPawn(APawn* InPawn)
 
 void AAITurretController::ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 {
+	Super::ActorsPerceptionUpdated(UpdatedActors);
+
     if (!CachedTurret.IsValid())
     {
         return;
     }
 
-    TArray<AActor*> SeenActors;
-    PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Sight::StaticClass(), SeenActors);
+    AActor* ClosestActor = GetClosestSensedActor(UAISense_Sight::StaticClass());
+    AActor* DamagedActor = GetClosestSensedActor(UAISense_Damage::StaticClass());
 
-    TArray<AActor*> DamagedActors;
-    PerceptionComponent->GetCurrentlyPerceivedActors(UAISense_Damage::StaticClass(), DamagedActors);
-
-    AActor* ClosestActor = nullptr;
-    FVector TurretLocation = CachedTurret->GetActorLocation();
-    float MinSquaredDistance = FLT_MAX;
-
-    for (AActor* Actor : SeenActors)
-    {
-        float CurrentSquareDistance = FVector::DistSquared(TurretLocation, Actor->GetActorLocation());
-        if (CurrentSquareDistance < MinSquaredDistance)
-        {
-            MinSquaredDistance = CurrentSquareDistance;
-            ClosestActor = Actor;
-        }
-    }
-
-    for (AActor* Actor : DamagedActors)
-    {
-        float CurrentSquareDistance = FVector::DistSquared(TurretLocation, Actor->GetActorLocation());
-        if (CurrentSquareDistance < MinSquaredDistance)
-        {
-            MinSquaredDistance = CurrentSquareDistance;
-            ClosestActor = Actor;
-        }
-    }
+	if (IsValid(DamagedActor))
+	{
+		ClosestActor = DamagedActor;
+	}
 
     CachedTurret->SetCurrentTarget(ClosestActor);
 }

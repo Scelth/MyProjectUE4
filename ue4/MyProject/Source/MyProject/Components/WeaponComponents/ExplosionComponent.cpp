@@ -19,8 +19,7 @@ void UExplosionComponent::Explode(AController* Controller)
 		IgnoredActors,
 		GetOwner(),
 		Controller,
-		ECC_Visibility
-	);
+		ECC_Visibility);
 
 	if (IsValid(ExplosionVFX))
 	{

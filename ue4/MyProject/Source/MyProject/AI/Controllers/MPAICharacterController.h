@@ -2,12 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "MPAIController.h"
-#include "AITurretController.generated.h"
+#include "MPAICharacterController.generated.h"
 
-class ATurret;
+class AMPAICharacter;
 
 UCLASS()
-class MYPROJECT_API AAITurretController : public AMPAIController
+class MYPROJECT_API AMPAICharacterController : public AMPAIController
 {
 	GENERATED_BODY()
 	
@@ -16,5 +16,5 @@ public:
 	virtual void ActorsPerceptionUpdated(const TArray<AActor*>& UpdatedActors) override;
 
 private:
-	TWeakObjectPtr<ATurret> CachedTurret;
+	TWeakObjectPtr<AMPAICharacter> CachedAICharacter;
 };

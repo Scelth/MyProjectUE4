@@ -478,6 +478,7 @@ const AZipline* AMPBaseCharacter::GetAvailableZipline() const
 void AMPBaseCharacter::OnDeath()
 {
 	GetCharacterMovement()->DisableMovement();
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	EnableRagdoll();
 }

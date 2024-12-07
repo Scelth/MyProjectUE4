@@ -12,7 +12,7 @@
 void UMPBaseCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
+	//checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
 	CachedPlayerCharacter = StaticCast<APlayerCharacter*>(GetOwner());
 
 	GetBaseCharacterOwner()->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit);
