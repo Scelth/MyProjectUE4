@@ -21,9 +21,6 @@ public:
 	virtual void OnStartCrouch(float HalfHeight, float ScaleHalfHeight) override;
 	virtual void OnEndCrouch(float HalfHeight, float ScaleHalfHeight) override;
 
-	virtual void OnStartProne(float HeightAdjust);
-	virtual void OnEndProne(float HeightAdjust);
-
 	virtual void SwimForward(float Value) override;
 	virtual void SwimRight(float Value) override;
 	virtual void SwimUp(float Value) override;
@@ -35,8 +32,6 @@ public:
 	void LookUpAtRate(float Value);
 
 protected:
-	bool bIsProningCamera = false;
-
 	float InitialSpringArmLength;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Camera")

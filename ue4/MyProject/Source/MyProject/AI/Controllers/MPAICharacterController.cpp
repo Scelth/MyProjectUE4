@@ -2,6 +2,21 @@
 #include "MyProject/AI/Characters/MPAICharacter.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense_Damage.h"
+#include "MyProject/Components/CharacterComponents/AIPatrolingComponent.h"
+
+void AMPAICharacterController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	UAIPatrolingComponent* PatrollingComponent = CachedAICharacter->GetPatrolingComponent();
+
+	if (PatrollingComponent->CanPatrol())
+	{
+		FVector ClosestWayPoint = PatrollingComponent->SelectClosestWayPoint();
+		MoveToLocation(ClosestWayPoint);
+		bIsPatrolling = true;
+	}
+}
 
 void AMPAICharacterController::SetPawn(APawn* InPawn)
 {
@@ -27,6 +42,30 @@ void AMPAICharacterController::ActorsPerceptionUpdated(const TArray<AActor*>& Up
 		return;
 	}
 
+	TryMoveToNextTarget();
+}
+
+void AMPAICharacterController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
+{
+	Super::OnMoveCompleted(RequestID, Result);
+
+	if (!Result.IsSuccess())
+	{
+		return;
+	}
+
+	TryMoveToNextTarget();
+}
+
+bool AMPAICharacterController::IsTargetReached(FVector TargetLocation) const
+{
+	return (TargetLocation - CachedAICharacter->GetActorLocation()).SizeSquared() <= FMath::Square(TargetReachRadius);
+}
+
+void AMPAICharacterController::TryMoveToNextTarget()
+{
+	UAIPatrolingComponent* PatrollingComponent = CachedAICharacter->GetPatrolingComponent();
+
 	AActor* ClosestActor = GetClosestSensedActor(UAISense_Sight::StaticClass());
 	AActor* DamagedActor = GetClosestSensedActor(UAISense_Damage::StaticClass());
 
@@ -37,8 +76,23 @@ void AMPAICharacterController::ActorsPerceptionUpdated(const TArray<AActor*>& Up
 
 	if (IsValid(ClosestActor))
 	{
-		MoveToActor(ClosestActor);
+		if (!IsTargetReached(ClosestActor->GetActorLocation()))
+		{
+			MoveToActor(ClosestActor);
+		}
+		
+		bIsPatrolling = false;
 	}
 
-	//CachedAICharacter->SetCurrentTarget(ClosestActor);
+	else if(PatrollingComponent->CanPatrol())
+	{
+		FVector WayPoint = bIsPatrolling ? PatrollingComponent->SelectNextWayPoint() : PatrollingComponent->SelectClosestWayPoint();
+
+		if (!IsTargetReached(WayPoint))
+		{
+			MoveToLocation(WayPoint);
+		}
+
+		bIsPatrolling = true;
+	}
 }

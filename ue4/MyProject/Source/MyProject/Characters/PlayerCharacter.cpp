@@ -85,44 +85,6 @@ void APlayerCharacter::OnEndCrouch(float HalfHeight, float ScaleHalfHeight)
 	SpringArmComponent->TargetOffset -= FVector(0.f, 0.f, HalfHeight);
 }
 
-void APlayerCharacter::OnStartProne(float HeightAdjust)
-{
-	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
-
-	if (GetMesh() && DefaultChar->GetMesh())
-	{
-		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
-		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
-		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
-	}
-
-	else
-	{
-		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
-	}
-
-	bIsProningCamera = true;
-}
-
-void APlayerCharacter::OnEndProne(float HeightAdjust)
-{
-	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
-
-	if (GetMesh() && DefaultChar->GetMesh())
-	{
-		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
-		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
-		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
-	}
-
-	else
-	{
-		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
-	}
-
-	bIsProningCamera = false;
-}
-
 void APlayerCharacter::SwimForward(float Value)
 {
 	if (GetCharacterMovement()->IsSwimming() && !FMath::IsNearlyZero(Value, 1e-6f))
@@ -243,7 +205,7 @@ void APlayerCharacter::UpdateFOV(float Value)
 
 void APlayerCharacter::UpdateSpringArm(float DeltaTime)
 {
-	if (bIsProningCamera)
+	if (IsProningCamera())
 	{
 		SpringArmComponent->TargetArmLength = FMath::FInterpTo(SpringArmComponent->TargetArmLength, ProneSpringArmLength, DeltaTime, CameraInterpSpeed);
 	}

@@ -12,8 +12,6 @@
 void UMPBaseCharacterMovementComponent::BeginPlay()
 {
 	Super::BeginPlay();
-	//checkf(GetOwner()->IsA<APlayerCharacter>(), TEXT("ULegdeDetectorComponent::BeginPlay() only character can use ULegdeDetectorComponent"));
-	CachedPlayerCharacter = StaticCast<APlayerCharacter*>(GetOwner());
 
 	GetBaseCharacterOwner()->GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &UMPBaseCharacterMovementComponent::OnPlayerCapsuleHit);
 	GetBaseCharacterOwner()->GetCharacterMovement()->SetPlaneConstraintEnabled(true);
@@ -38,9 +36,9 @@ float UMPBaseCharacterMovementComponent::GetMaxSpeed() const
 		Result = ExhaustedSpeed;
 	}
 
-	if (CachedPlayerCharacter->IsAiming())
+	if (GetBaseCharacterOwner()->IsAiming())
 	{
-		Result = CachedPlayerCharacter->GetAimingMovementSpeed();
+		Result = GetBaseCharacterOwner()->GetAimingMovementSpeed();
 	}
 
 	if (IsOnLadder())
@@ -77,10 +75,8 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 
 	else if (PreviousMovementMode == MOVE_Swimming)
 	{
-		ACharacter* DefaultCharacter = CachedPlayerCharacter->GetClass()->GetDefaultObject<ACharacter>();
-
-		float DefaultRadius = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-		float DefaultHalfHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+		float DefaultRadius = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float DefaultHalfHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
 		CharacterOwner->GetCapsuleComponent()->SetCapsuleSize(DefaultRadius, DefaultHalfHeight);
 	}
@@ -88,27 +84,27 @@ void UMPBaseCharacterMovementComponent::OnMovementModeChanged(EMovementMode Prev
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Ladder)
 	{
 		CurrentLadder = nullptr;
-	}		
-	
+	}
+
 	if (PreviousMovementMode == MOVE_Custom && PreviousCustomMode == (uint8)ECustomMovementMode::CMOVE_Zipline)
 	{
 		CurrentZipline = nullptr;
-	}	
+	}
 
 	if (MovementMode == MOVE_Custom)
 	{
 		switch (CustomMovementMode)
 		{
-			case (uint8)ECustomMovementMode::CMOVE_Mantling:
-			{
-				GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UMPBaseCharacterMovementComponent::EndMantle, CurrentMantlingParameters.Duration, false);
-				break;
-			}
+		case (uint8)ECustomMovementMode::CMOVE_Mantling:
+		{
+			GetWorld()->GetTimerManager().SetTimer(MantlingTimer, this, &UMPBaseCharacterMovementComponent::EndMantle, CurrentMantlingParameters.Duration, false);
+			break;
+		}
 
-			default:
-			{
-				break;
-			}
+		default:
+		{
+			break;
+		}
 		}
 	}
 }
@@ -180,36 +176,36 @@ void UMPBaseCharacterMovementComponent::PhysCustom(float DeltaTime, int32 Iterat
 {
 	switch (CustomMovementMode)
 	{
-		case (uint8)ECustomMovementMode::CMOVE_Mantling:
-		{
-			PhysMantling(DeltaTime, Iterations);
-			break;
-		}
+	case (uint8)ECustomMovementMode::CMOVE_Mantling:
+	{
+		PhysMantling(DeltaTime, Iterations);
+		break;
+	}
 
-		case (uint8)ECustomMovementMode::CMOVE_Ladder:
-		{
-			PhysLadder(DeltaTime, Iterations);
-			break;
-		}
+	case (uint8)ECustomMovementMode::CMOVE_Ladder:
+	{
+		PhysLadder(DeltaTime, Iterations);
+		break;
+	}
 
-		case (uint8)ECustomMovementMode::CMOVE_WallRun:
-		{
-			PhysWallRun(DeltaTime, Iterations);
-			LastWallRunDirection = FVector::ZeroVector;
-			LastWallRunSide = EWallRunSide::None;
-			break;
-		}		
-		
-		case (uint8)ECustomMovementMode::CMOVE_Zipline:
-		{
-			PhysZipline(DeltaTime, Iterations);
-			break;
-		}
+	case (uint8)ECustomMovementMode::CMOVE_WallRun:
+	{
+		PhysWallRun(DeltaTime, Iterations);
+		LastWallRunDirection = FVector::ZeroVector;
+		LastWallRunSide = EWallRunSide::None;
+		break;
+	}
 
-		default:
-		{
-			break;
-		}
+	case (uint8)ECustomMovementMode::CMOVE_Zipline:
+	{
+		PhysZipline(DeltaTime, Iterations);
+		break;
+	}
+
+	default:
+	{
+		break;
+	}
 	}
 
 	Super::PhysCustom(DeltaTime, Iterations);
@@ -416,44 +412,40 @@ void UMPBaseCharacterMovementComponent::StopSlide()
 #pragma region Prone
 void UMPBaseCharacterMovementComponent::StartProne()
 {
-	CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
+	GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(ProneCapsuleRadius, ProneCapsuleHalfHeight);
 
-	HeightAdjust = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+	HeightAdjust = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
-	CachedPlayerCharacter->OnStartProne(HeightAdjust);
+	GetBaseCharacterOwner()->OnStartProne(HeightAdjust);
 
 	bIsProning = true;
 }
 
 void UMPBaseCharacterMovementComponent::StopProne(bool bIsFromCrouch)
 {
-	ACharacter* DefaultCharacter = CachedPlayerCharacter->GetClass()->GetDefaultObject<ACharacter>();
-
 	if (bIsFromCrouch)
 	{
-		UCharacterMovementComponent* MovementComponent = DefaultCharacter->GetCharacterMovement();
-		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(MovementComponent->CrouchedHalfHeight * ScaleCrouchHalfHeight,
-			MovementComponent->CrouchedHalfHeight);
+		UCharacterMovementComponent* MovementComponent = GetBaseCharacterOwner()->GetCharacterMovement();
+		GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(MovementComponent->CrouchedHalfHeight * ScaleCrouchHalfHeight, MovementComponent->CrouchedHalfHeight);
 	}
 
 	else
 	{
-		float TargetRadius = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-		float TargetHeight = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+		float TargetRadius = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float TargetHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
-		float CurrentRadius = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
-		float CurrentHeight = CachedPlayerCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
+		float CurrentRadius = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleRadius();
+		float CurrentHeight = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight();
 
 		float NewRadius = FMath::FInterpTo(CurrentRadius, TargetRadius, GetWorld()->DeltaTimeSeconds, InterpSpeed);
 		float NewHeight = FMath::FInterpTo(CurrentHeight, TargetHeight, GetWorld()->DeltaTimeSeconds, InterpSpeed);
 
-		CachedPlayerCharacter->GetCapsuleComponent()->SetCapsuleSize(NewRadius, NewHeight);
+		GetBaseCharacterOwner()->GetCapsuleComponent()->SetCapsuleSize(NewRadius, NewHeight);
 	}
 
-	HeightAdjust = DefaultCharacter->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() -
-		CachedPlayerCharacter->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+	HeightAdjust = GetBaseCharacterOwner()->GetCapsuleComponent()->GetUnscaledCapsuleHalfHeight() - GetBaseCharacterOwner()->GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
 
-	CachedPlayerCharacter->OnEndProne(HeightAdjust);
+	GetBaseCharacterOwner()->OnEndProne(HeightAdjust);
 
 	bIsProning = false;
 }
@@ -467,9 +459,9 @@ bool UMPBaseCharacterMovementComponent::IsMantling() const
 
 void UMPBaseCharacterMovementComponent::StartMantle(const FMantlingMovementParameters& MantlingParameters)
 {
-	if (CachedPlayerCharacter.IsValid() && CachedPlayerCharacter->bIsCrouched)
+	if (IsValid(GetBaseCharacterOwner()) && GetBaseCharacterOwner()->bIsCrouched)
 	{
-		CachedPlayerCharacter->UnCrouch();
+		GetBaseCharacterOwner()->UnCrouch();
 	}
 
 	CurrentMantlingParameters = MantlingParameters;
@@ -499,7 +491,7 @@ void UMPBaseCharacterMovementComponent::AttachToLadder(const ALadder* Ladder)
 	float Projection = GetActorToCurrentLadderProjection(GetActorLocation());
 
 	FVector NewCharacterLocation = CurrentLadder->GetActorLocation() + Projection * LadderUpVector + LadderToCharacterOffset * LadderForwardVector;
-	
+
 	if (CurrentLadder->IsOnTop())
 	{
 		NewCharacterLocation = CurrentLadder->GetAttachFromTopAnimMontageStartingLocation();
@@ -515,7 +507,7 @@ float UMPBaseCharacterMovementComponent::GetActorToCurrentLadderProjection(const
 {
 	FVector LadderUpVector = CurrentLadder->GetActorUpVector();
 	FVector LadderToCharacterDistance = Location - CurrentLadder->GetActorLocation();
-	
+
 	return FVector::DotProduct(LadderUpVector, LadderToCharacterDistance);
 }
 
@@ -523,37 +515,37 @@ void UMPBaseCharacterMovementComponent::DetachFromLadder(EDetachFromInteractionM
 {
 	switch (DetachFromLadderMethod)
 	{
-		case EDetachFromInteractionMethod::JumpOff:
-		{
-			FVector JumpDirection = CurrentLadder->GetActorForwardVector();
-			SetMovementMode(MOVE_Falling);
+	case EDetachFromInteractionMethod::JumpOff:
+	{
+		FVector JumpDirection = CurrentLadder->GetActorForwardVector();
+		SetMovementMode(MOVE_Falling);
 
-			FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
+		FVector JumpVelocity = JumpDirection * JumpOffFromLadderSpeed;
 
-			ForceTargetRotation = JumpDirection.ToOrientationRotator();
-			bIsForceRotation = true;
+		ForceTargetRotation = JumpDirection.ToOrientationRotator();
+		bIsForceRotation = true;
 
-			Launch(JumpVelocity);
-			break;
-		}
+		Launch(JumpVelocity);
+		break;
+	}
 
-		case EDetachFromInteractionMethod::ReachingTheTop:
-		{
-			GetBaseCharacterOwner()->Mantle(true);
-			break;
-		}
+	case EDetachFromInteractionMethod::ReachingTheTop:
+	{
+		GetBaseCharacterOwner()->Mantle(true);
+		break;
+	}
 
-		case EDetachFromInteractionMethod::ReachingTheBottom:
-		{
-			SetMovementMode(MOVE_Walking);
-			break;
-		}
-		case EDetachFromInteractionMethod::Fall:
-		default:
-		{
-			SetMovementMode(MOVE_Falling);
-			break;
-		}
+	case EDetachFromInteractionMethod::ReachingTheBottom:
+	{
+		SetMovementMode(MOVE_Walking);
+		break;
+	}
+	case EDetachFromInteractionMethod::Fall:
+	default:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
 	}
 }
 
@@ -586,31 +578,31 @@ void UMPBaseCharacterMovementComponent::DetachFromWall(EDetachFromInteractionMet
 
 	switch (DetachFromWallMethod)
 	{
-		case EDetachFromInteractionMethod::JumpOff:
+	case EDetachFromInteractionMethod::JumpOff:
+	{
+		FVector JumpDirection = FVector::ZeroVector;
+
+		if (CurrentWallRunSide == EWallRunSide::Right)
 		{
-			FVector JumpDirection = FVector::ZeroVector;
-
-			if (CurrentWallRunSide == EWallRunSide::Right)
-			{
-				JumpDirection = FVector::CrossProduct(CurrentWallRunDirection, FVector::UpVector).GetSafeNormal();
-			}
-
-			else
-			{
-				JumpDirection = FVector::CrossProduct(FVector::UpVector, CurrentWallRunDirection).GetSafeNormal();
-			}
-
-			JumpDirection += FVector::UpVector;
-
-			GetBaseCharacterOwner()->LaunchCharacter(JumpZVelocity * JumpDirection.GetSafeNormal(), false, true);
-			break;
+			JumpDirection = FVector::CrossProduct(CurrentWallRunDirection, FVector::UpVector).GetSafeNormal();
 		}
 
-		case EDetachFromInteractionMethod::Fall:
+		else
 		{
-			SetMovementMode(MOVE_Falling);
-			break;
+			JumpDirection = FVector::CrossProduct(FVector::UpVector, CurrentWallRunDirection).GetSafeNormal();
 		}
+
+		JumpDirection += FVector::UpVector;
+
+		GetBaseCharacterOwner()->LaunchCharacter(JumpZVelocity * JumpDirection.GetSafeNormal(), false, true);
+		break;
+	}
+
+	case EDetachFromInteractionMethod::Fall:
+	{
+		SetMovementMode(MOVE_Falling);
+		break;
+	}
 	}
 }
 
@@ -631,7 +623,7 @@ void UMPBaseCharacterMovementComponent::GetWallRunSideAndDirection(const FVector
 
 bool UMPBaseCharacterMovementComponent::IsOnWall() const
 {
-	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_WallRun ;
+	return UpdatedComponent && MovementMode == MOVE_Custom && CustomMovementMode == (uint8)ECustomMovementMode::CMOVE_WallRun;
 }
 
 

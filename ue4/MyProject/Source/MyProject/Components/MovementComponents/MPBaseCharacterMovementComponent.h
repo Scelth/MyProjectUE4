@@ -212,8 +212,6 @@ private:
 	float ForwardAxis = 0.0f;
 	float RightAxis = 0.0f;
 
-	TSoftObjectPtr<class APlayerCharacter> CachedPlayerCharacter;
-
 	FMantlingMovementParameters CurrentMantlingParameters;
 
 	FTimerHandle MantlingTimer;

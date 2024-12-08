@@ -238,6 +238,44 @@ void AMPBaseCharacter::ChangeProneState()
 		GetBaseCharacterMovementComponent_Mutable()->StopProne(true);
 	}
 }
+
+void AMPBaseCharacter::OnStartProne(float HeightAdjust)
+{
+	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
+
+	if (GetMesh() && DefaultChar->GetMesh())
+	{
+		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
+		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
+		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
+	}
+
+	else
+	{
+		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
+	}
+
+	bIsProningCamera = true;
+}
+
+void AMPBaseCharacter::OnEndProne(float HeightAdjust)
+{
+	const ACharacter* DefaultChar = GetDefault<ACharacter>(GetClass());
+
+	if (GetMesh() && DefaultChar->GetMesh())
+	{
+		FVector& MeshRelativeLocation = GetMesh()->GetRelativeLocation_DirectMutable();
+		MeshRelativeLocation.Z = DefaultChar->GetMesh()->GetRelativeLocation().Z + HeightAdjust;
+		BaseTranslationOffset.Z = MeshRelativeLocation.Z;
+	}
+
+	else
+	{
+		BaseTranslationOffset.Z = DefaultChar->GetBaseTranslationOffset().Z + HeightAdjust;
+	}
+
+	bIsProningCamera = false;
+}
 #pragma endregion
 
 #pragma region Sprint

@@ -78,6 +78,7 @@ public:
 #pragma region Action
 	virtual bool CanJumpInternal_Implementation() const override;
 	
+	UFUNCTION(BlueprintCallable)
 	virtual void Mantle(bool bForce = false);
 	virtual void Jump();
 	virtual void ChangeCrouchState();
@@ -105,6 +106,9 @@ public:
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Character")
 	void OnStopAiming();
 
+	virtual void OnStartProne(float HeightAdjust);
+	virtual void OnEndProne(float HeightAdjust);
+
 #pragma region Interaction
 	void RegisterInteractiveActor(AInteractiveActor* InteractiveActor);
 	void UnregisterInteractiveActor(AInteractiveActor* InteractiveActor);
@@ -122,6 +126,7 @@ public:
 
 #pragma region Getters
 	bool IsAiming() const { return bIsAiming; }
+	bool IsProningCamera() const { return bIsProningCamera; }
 	float GetAimingMovementSpeed() const { return CurrentAimingMovementSpeed; }
 
 #pragma region InverseKinematic
@@ -210,6 +215,7 @@ private:
 #pragma region Property
 	bool bIsSprintRequested = false;
 	bool bIsAiming = false;
+	bool bIsProningCamera = false;
 	
 	float CrouchDifference = 25.f;
 	float CurrentAimingMovementSpeed;
