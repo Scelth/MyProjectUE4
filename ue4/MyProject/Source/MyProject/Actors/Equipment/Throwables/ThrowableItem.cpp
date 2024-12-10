@@ -12,25 +12,29 @@ void AThrowableItem::Throw()
     checkf(GetOwner()->IsA<AMPBaseCharacter>(), TEXT("AThrowableItem::Throw() only character can be an owner of range throwables"));
     AMPBaseCharacter* CharacterOwner = StaticCast<AMPBaseCharacter*>(GetOwner());
 
-    APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
+    FVector ThrowLocation;
+    FRotator ThrowRotation;
 
-    if (!IsValid(Controller))
+    if (CharacterOwner->IsPlayerControlled())
     {
-        return;
+        APlayerController* Controller = CharacterOwner->GetController<APlayerController>();
+        Controller->GetPlayerViewPoint(ThrowLocation, ThrowRotation);
     }
 
-    FVector PlayerViewPoint;
-    FRotator PlayerViewRotation;
+    else
+    {
+        ThrowLocation = CharacterOwner->GetActorLocation();
+        ThrowRotation = CharacterOwner->GetActorRotation();
+    }
 
-    Controller->GetPlayerViewPoint(PlayerViewPoint, PlayerViewRotation);
-    FTransform PlayerViewTransform(PlayerViewRotation, PlayerViewPoint);
+    FTransform ThrowTransform(ThrowRotation, ThrowLocation);
 
-    FVector PlayerViewDirection = PlayerViewRotation.RotateVector(FVector::ForwardVector);
-    FVector ViewUpVector = PlayerViewRotation.RotateVector(FVector::UpVector);
-    FVector LaunchDirection = PlayerViewDirection + FMath::Tan(FMath::RadiansToDegrees(ThrowAngle)) * ViewUpVector;
+    FVector ThrowDirection = ThrowRotation.RotateVector(FVector::ForwardVector);
+    FVector ViewUpVector = ThrowRotation.RotateVector(FVector::UpVector);
+    FVector LaunchDirection = ThrowDirection + FMath::Tan(FMath::RadiansToDegrees(ThrowAngle)) * ViewUpVector;
     FVector ThorwableSocketLocation = CharacterOwner->GetMesh()->GetSocketLocation(SocketCharacterThrowable);
-    FVector SocketInViewSpace = PlayerViewTransform.InverseTransformPosition(ThorwableSocketLocation);
-    FVector SpawnLocation = PlayerViewPoint + PlayerViewDirection * SocketInViewSpace.X + PlayerViewDirection.RightVector * ThrowOffsetX;
+    FVector SocketInViewSpace = ThrowTransform.InverseTransformPosition(ThorwableSocketLocation);
+    FVector SpawnLocation = ThrowLocation + ThrowDirection * SocketInViewSpace.X + ThrowDirection.RightVector * ThrowOffsetX;
 
     AMPProjectile* Projectile = GetWorld()->SpawnActor<AMPProjectile>(ProjectileClass, SpawnLocation, FRotator::ZeroRotator);
 

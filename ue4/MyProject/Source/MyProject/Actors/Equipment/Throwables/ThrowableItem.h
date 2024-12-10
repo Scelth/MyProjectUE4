@@ -10,6 +10,8 @@ class MYPROJECT_API AThrowableItem : public AEquipableItem
 	GENERATED_BODY()
 	
 public:
+	bool IsThrowing() const { return bIsThrowing; }
+
 	void Throw();
 	void SetThrowableCount(int32 NewThrowableCount);
 
@@ -34,4 +36,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon | Parameters | Throwables", meta = (ClampMin = 0, UIMin = 0))
 	EAmunitionType AmmunitionType;
+
+private:
+	bool bIsThrowing = false;
 };

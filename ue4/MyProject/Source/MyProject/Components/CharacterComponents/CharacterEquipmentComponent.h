@@ -23,7 +23,7 @@ public:
 	AThrowableItem* GetCurrentThrowableItem() const { return CurrentThrowableItem; }
 
 	TMulticastDelegate<void(int32, int32)> OnCurrentWeaponAmmoChangedEvent;
-	TMulticastDelegate<void(int32)> OnCurrentThrowableCountChangedEvent;
+	TMulticastDelegate<void(int32, int32)> OnCurrentThrowableCountChangedEvent;
 	TMulticastDelegate<void(const AEquipableItem*)> OnCurrentEquippedItemChangedEvent;
 
 	void ReloadCurrentWeapon();
@@ -40,6 +40,8 @@ public:
 	bool IsEquipping() const { return bIsEquipping; }
 
 protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY()
 	ARangeWeaponItem* CurrentEquippedWeapon;
 
@@ -58,7 +60,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Loadout")
 	TSet<EEquipmentSlots> IgnoreSlotsWhileSwitching;
 
-	virtual void BeginPlay() override;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Loadout")
+	EEquipmentSlots AutoEquipItemInSlot = EEquipmentSlots::None;
 
 private:
 	bool bIsEquipping = false;
@@ -82,6 +85,7 @@ private:
 
 	void CreateLoadout();
 	void EquipAnimationFinished();
+	void AutoEquip();
 	
 	UFUNCTION()
 	void OnWeaponReloadComplete();

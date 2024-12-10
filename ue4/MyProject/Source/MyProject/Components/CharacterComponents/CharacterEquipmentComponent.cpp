@@ -11,6 +11,7 @@ void UCharacterEquipmentComponent::BeginPlay()
 	CachedBaseCharacter = Cast<AMPBaseCharacter>(GetOwner());
 
 	CreateLoadout();
+	AutoEquip();
 }
 
 void UCharacterEquipmentComponent::CreateLoadout()
@@ -104,8 +105,16 @@ void UCharacterEquipmentComponent::EquipItemInSlot(EEquipmentSlots Slot)
 	UnequipCurrentItem();
 
 	CurrentEquippedItem = ItemsArray[(uint32)Slot];
-	CurrentEquippedWeapon = Cast<ARangeWeaponItem>(CurrentEquippedItem);
-	CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
+
+	if (Slot != EEquipmentSlots::PrimaryItemSlot)
+	{
+		CurrentEquippedWeapon = Cast<ARangeWeaponItem>(CurrentEquippedItem);
+	}
+
+	else
+	{
+		CurrentThrowableItem = Cast<AThrowableItem>(CurrentEquippedItem);
+	}
 
 	if (IsValid(CurrentEquippedItem))
 	{
@@ -264,6 +273,14 @@ void UCharacterEquipmentComponent::EquipAnimationFinished()
 	AttachCurrentItemToEquippedSocket();
 }
 
+void UCharacterEquipmentComponent::AutoEquip()
+{
+	if (AutoEquipItemInSlot != EEquipmentSlots::None)
+	{
+		EquipItemInSlot(AutoEquipItemInSlot);
+	}
+}
+
 int32 UCharacterEquipmentComponent::GetAvailableAmunitionForCurrentWeapon()
 {
 	check(CurrentEquippedWeapon);
@@ -293,6 +310,6 @@ void UCharacterEquipmentComponent::OnCurrentThrowableCountChanged(int32 Throwabl
 {
 	if (OnCurrentThrowableCountChangedEvent.IsBound())
 	{
-		OnCurrentThrowableCountChangedEvent.Broadcast(Throwable);
+		OnCurrentThrowableCountChangedEvent.Broadcast(Throwable, GetAvailableThrowableCount());
 	}
 }

@@ -517,6 +517,9 @@ void AMPBaseCharacter::OnDeath()
 {
 	GetCharacterMovement()->DisableMovement();
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetController()->UnPossess();
+	DisableInput(nullptr);
+	SetActorTickEnabled(false);
 
 	EnableRagdoll();
 }

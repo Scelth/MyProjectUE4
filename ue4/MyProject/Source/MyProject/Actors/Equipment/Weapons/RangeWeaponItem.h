@@ -28,6 +28,9 @@ class MYPROJECT_API ARangeWeaponItem : public AEquipableItem
 public:
 	ARangeWeaponItem();
 
+	bool IsFiring() const { return bIsFiring; }
+	bool IsRealoading() const { return bIsReloading; }
+
 	void StartFire();
 	void StopFire();
 

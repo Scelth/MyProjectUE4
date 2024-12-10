@@ -1,8 +1,10 @@
 #include "MPAICharacterController.h"
 #include "MyProject/AI/Characters/MPAICharacter.h"
+#include "MyProject/Components/CharacterComponents/AIPatrolingComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Perception/AISense_Damage.h"
-#include "MyProject/Components/CharacterComponents/AIPatrolingComponent.h"
+#include "BehaviorTree/BlackboardComponent.h"
+#include "MyProject/MPTypes.h"
 
 void AMPAICharacterController::BeginPlay()
 {
@@ -13,7 +15,13 @@ void AMPAICharacterController::BeginPlay()
 	if (PatrollingComponent->CanPatrol())
 	{
 		FVector ClosestWayPoint = PatrollingComponent->SelectClosestWayPoint();
-		MoveToLocation(ClosestWayPoint);
+
+		if (IsValid(Blackboard))
+		{
+			Blackboard->SetValueAsVector(BB_NextLocation, ClosestWayPoint);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
+		}
+
 		bIsPatrolling = true;
 	}
 }
@@ -25,6 +33,7 @@ void AMPAICharacterController::SetPawn(APawn* InPawn)
 	if (IsValid(InPawn))
 	{
 		CachedAICharacter = StaticCast<AMPAICharacter*>(InPawn);
+		RunBehaviorTree(CachedAICharacter->GetBehaviorTree());
 	}
 
 	else
@@ -76,9 +85,10 @@ void AMPAICharacterController::TryMoveToNextTarget()
 
 	if (IsValid(ClosestActor))
 	{
-		if (!IsTargetReached(ClosestActor->GetActorLocation()))
+		if (IsValid(Blackboard))
 		{
-			MoveToActor(ClosestActor);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, ClosestActor);
+			SetFocus(ClosestActor, EAIFocusPriority::Gameplay);
 		}
 		
 		bIsPatrolling = false;
@@ -88,9 +98,11 @@ void AMPAICharacterController::TryMoveToNextTarget()
 	{
 		FVector WayPoint = bIsPatrolling ? PatrollingComponent->SelectNextWayPoint() : PatrollingComponent->SelectClosestWayPoint();
 
-		if (!IsTargetReached(WayPoint))
+		if (IsValid(Blackboard))
 		{
-			MoveToLocation(WayPoint);
+			ClearFocus(EAIFocusPriority::Gameplay);
+			Blackboard->SetValueAsVector(BB_NextLocation, WayPoint);
+			Blackboard->SetValueAsObject(BB_CurrentTarget, nullptr);
 		}
 
 		bIsPatrolling = true;
