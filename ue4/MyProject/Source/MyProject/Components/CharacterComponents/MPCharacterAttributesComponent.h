@@ -30,6 +30,9 @@ public:
 	void SetStamina(float NewStamina);
 	void SetOxygen(float NewOxygen);
 
+	void AddHealth(float HealthToAdd);
+	void AddStamina(float StaminaToAdd);
+
 protected:
 	virtual void BeginPlay() override;
 

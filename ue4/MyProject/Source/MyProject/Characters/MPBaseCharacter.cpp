@@ -7,11 +7,15 @@
 #include "MyProject/MPTypes.h"
 #include "MyProject/Actors/Interactive/Environment/Ladder.h"
 #include "MyProject/Actors/Interactive/Environment/Zipline.h"
+#include "MyProject/Actors/Interactive/Interface/IInteractable.h"
+#include "MyProject/UI/Widget/World/MPAttributeProgressBar.h"
+#include "MyProject/Components/CharacterComponents/CharacterInventoryComponent.h"
 #include "Curves/CurveVector.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "AIController.h"
+#include "Components/WidgetComponent.h"
 
 #pragma region Base
 AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
@@ -22,6 +26,7 @@ AMPBaseCharacter::AMPBaseCharacter(const FObjectInitializer& ObjectInitializer)
 	LedgeDetectorComponent = CreateDefaultSubobject<ULedgeDetectorComponent>(TEXT("LedgeDetector"));
 	CharacterAttributesComponent = CreateDefaultSubobject<UMPCharacterAttributesComponent>(TEXT("CharacterAttributes"));
 	CharacterEquipmentComponent = CreateDefaultSubobject<UCharacterEquipmentComponent>(TEXT("CharacterEquipment"));
+	CharacterInventoryComponent = CreateDefaultSubobject<UCharacterInventoryComponent>(TEXT("CharacterInventory"));
 }
 
 void AMPBaseCharacter::BeginPlay()
@@ -32,6 +37,16 @@ void AMPBaseCharacter::BeginPlay()
 	CharacterAttributesComponent->OnOutOfStaminaChangedEvent.AddUObject(this, &AMPBaseCharacter::HandleStaminaEvent);
 }
 
+void AMPBaseCharacter::EndPlay(const EEndPlayReason::Type Reason)
+{
+	if (OnInteractableObjectFound.IsBound())
+	{
+		OnInteractableObjectFound.Unbind();
+	}
+
+	Super::EndPlay(Reason);
+}
+
 void AMPBaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -39,6 +54,8 @@ void AMPBaseCharacter::Tick(float DeltaTime)
 	TryChangeSprintState(DeltaTime);
 
 	UpdateIKSettings(DeltaTime);
+
+	TraceLineOfSight();
 }
 
 void AMPBaseCharacter::PossessedBy(AController* NewController)
@@ -429,6 +446,11 @@ void AMPBaseCharacter::ChangeFiringMode()
 {
 
 }
+
+void AMPBaseCharacter::AddEquipmentItem(const TSubclassOf<AEquipableItem> EquipableItemClass)
+{
+	CharacterEquipmentComponent->AddEquipmentItem(EquipableItemClass);
+}
 #pragma endregion
 
 #pragma region Interaction
@@ -508,6 +530,91 @@ const AZipline* AMPBaseCharacter::GetAvailableZipline() const
 	}
 
 	return Result;
+}
+
+bool AMPBaseCharacter::PickupItem(TWeakObjectPtr<UInventoryItem> ItemToPickup)
+{
+	bool Result = false;
+
+	if (CharacterInventoryComponent->HasFreeSlot())
+	{
+		CharacterInventoryComponent->AddItem(ItemToPickup, 1);
+		Result = true;
+	}
+
+	return Result;
+}
+
+void AMPBaseCharacter::UseInventory(APlayerController* PlayerController)
+{
+	if (!IsValid(PlayerController))
+	{
+		return;
+	}
+
+	if (!CharacterInventoryComponent->IsViewVisible())
+	{
+		CharacterInventoryComponent->OpenViewInventory(PlayerController);
+		PlayerController->SetInputMode(FInputModeGameAndUI{});
+		PlayerController->bShowMouseCursor = true;
+	}
+
+	else
+	{
+		CharacterInventoryComponent->CloseViewInventory();
+		PlayerController->SetInputMode(FInputModeGameAndUI{});
+		PlayerController->bShowMouseCursor = false;
+	}
+}
+#pragma endregion
+
+#pragma region Interactable
+void AMPBaseCharacter::TraceLineOfSight()
+{
+	if (!IsPlayerControlled())
+	{
+		return;
+	}
+
+	FVector ViewLocation;
+	FRotator ViewRotation;
+
+	APlayerController* PlayerController = GetController<APlayerController>();
+	PlayerController->GetPlayerViewPoint(ViewLocation, ViewRotation);
+
+	FVector ViewDirection = ViewRotation.Vector();
+	FVector TraceEnd = ViewLocation + ViewDirection * LineOfSightDistance;
+
+	FHitResult HitResult;
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, ViewLocation, TraceEnd, ECC_Visibility);
+
+	if (LineOfSightObject.GetObject() != HitResult.Actor)
+	{
+		LineOfSightObject = HitResult.GetActor();
+
+		FName ActionName;
+
+		if (LineOfSightObject.GetInterface())
+		{
+			ActionName = LineOfSightObject->GetActionEventName();
+		}
+
+		else
+		{
+			ActionName = NAME_None;
+		}
+
+		OnInteractableObjectFound.ExecuteIfBound(ActionName);
+	}
+}
+
+void AMPBaseCharacter::Interact()
+{
+	if (LineOfSightObject.GetInterface())
+	{
+		LineOfSightObject->Interact(this);
+	}
 }
 #pragma endregion
 #pragma endregion

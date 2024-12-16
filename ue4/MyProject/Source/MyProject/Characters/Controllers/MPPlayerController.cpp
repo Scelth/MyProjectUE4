@@ -1,12 +1,13 @@
 #include "MPPlayerController.h"
-#include "MyProject/Characters/MPBaseCharacter.h"
 #include "Blueprint/UserWidget.h"
+#include "MyProject/Characters/MPBaseCharacter.h"
 #include "MyProject/Components/CharacterComponents/MPCharacterAttributesComponent.h"
 #include "MyProject/Components/CharacterComponents/CharacterEquipmentComponent.h"
 #include "MyProject/UI/Widget/ReticleWidget.h"
 #include "MyProject/UI/Widget/PlayerAttributesWidget.h"
 #include "MyProject/UI/Widget/PlayerHUDWidget.h"
 #include "MyProject/UI/Widget/AmmoWidget.h"
+#include "GameFramework/PlayerInput.h"
 
 
 #pragma region Base
@@ -15,7 +16,11 @@ void AMPPlayerController::SetPawn(APawn* InPawn)
 	Super::SetPawn(InPawn);
 	CachedBaseCharacter = Cast<AMPBaseCharacter>(InPawn);
 
-	CreateAndInitializeWidgets();
+	if (CachedBaseCharacter.IsValid() && IsLocalController())
+	{
+		CreateAndInitializeWidgets();
+		CachedBaseCharacter->OnInteractableObjectFound.BindUObject(this, &AMPPlayerController::OnInteractableObjectFount);
+	}
 }
 
 void AMPPlayerController::SetupInputComponent()
@@ -51,6 +56,8 @@ void AMPPlayerController::SetupInputComponent()
 	InputComponent->BindAction("EquipPrimaryItem", EInputEvent::IE_Pressed, this, &AMPPlayerController::EquipPrimaryItem);
 	InputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AMPPlayerController::Reload);
 	InputComponent->BindAction("ChangeFiringMode", EInputEvent::IE_Pressed, this, &AMPPlayerController::ChangeFiringMode);
+	InputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AMPPlayerController::Interact);
+	InputComponent->BindAction("UseInventory", EInputEvent::IE_Pressed, this, &AMPPlayerController::UseInventory);
 }
 
 void AMPPlayerController::CreateAndInitializeWidgets()
@@ -93,6 +100,25 @@ void AMPPlayerController::CreateAndInitializeWidgets()
 			CharacterEquipment->OnCurrentThrowableCountChangedEvent.AddUFunction(AmmoWidget, FName("UpdateThrowablesCount"));
 		}
 	}
+}
+
+void AMPPlayerController::OnInteractableObjectFount(FName ActionName)
+{
+	if (!IsValid(PlayerHUDWidget))
+	{
+		return;
+	}
+
+	TArray<FInputActionKeyMapping> ActionKeys = PlayerInput->GetKeysForAction(ActionName);
+	const bool HasAnyKeys = ActionKeys.Num() != 0;
+
+	if (HasAnyKeys)
+	{
+		FName ActionKey = ActionKeys[0].Key.GetFName();
+		PlayerHUDWidget->SetHightlightInteractableActionText(ActionKey);
+	}
+
+	PlayerHUDWidget->SetHighlightInteractableVisibility(HasAnyKeys);
 }
 #pragma endregion
 
@@ -304,6 +330,22 @@ void AMPPlayerController::InteractWithZipline()
 	if (CachedBaseCharacter.IsValid())
 	{
 		CachedBaseCharacter->InteractWithZipline();
+	}
+}
+
+void AMPPlayerController::Interact()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->Interact();
+	}
+}
+
+void AMPPlayerController::UseInventory()
+{
+	if (CachedBaseCharacter.IsValid())
+	{
+		CachedBaseCharacter->UseInventory(this);
 	}
 }
 #pragma endregion

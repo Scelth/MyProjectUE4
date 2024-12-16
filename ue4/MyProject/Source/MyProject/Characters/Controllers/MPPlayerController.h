@@ -23,6 +23,7 @@ private:
 	UPlayerHUDWidget* PlayerHUDWidget = nullptr;
 
 	void CreateAndInitializeWidgets();
+	void OnInteractableObjectFount(FName ActionName);
 
 	// Axis
 	void MoveForward(float Value);
@@ -53,4 +54,6 @@ private:
 	void ChangeFiringMode();
 	void InteractWithLadder();
 	void InteractWithZipline();
+	void Interact();
+	void UseInventory();
 };

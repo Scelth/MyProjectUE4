@@ -17,7 +17,7 @@ public:
 	virtual void OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result) override;
 
 protected:
-	virtual void BeginPlay() override;
+	void SetupPatrolling();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float TargetReachRadius = 100.f;

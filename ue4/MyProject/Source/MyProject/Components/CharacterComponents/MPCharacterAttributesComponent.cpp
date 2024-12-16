@@ -43,6 +43,20 @@ void UMPCharacterAttributesComponent::SetOxygen(float NewOxygen)
 	}
 }
 
+void UMPCharacterAttributesComponent::AddHealth(float HealthToAdd)
+{
+	Health = FMath::Clamp(Health + HealthToAdd, 0.f, MaxHealth);
+
+	SetHealth(Health);
+}
+
+void UMPCharacterAttributesComponent::AddStamina(float StaminaToAdd)
+{
+	Stamina = FMath::Clamp(Stamina + StaminaToAdd, 0.f, MaxStamina);
+
+	SetStamina(Stamina);
+}
+
 void UMPCharacterAttributesComponent::BeginPlay()
 {
 	Super::BeginPlay();

@@ -28,6 +28,8 @@ const FName SectionMontageEndReload = FName("EndReload");
 const FName BB_CurrentTarget = FName("CurrentTarget");
 const FName BB_NextLocation = FName("NextLocation");
 
+const FName ActionInteract = FName("Interact");
+
 UENUM(BlueprintType)
 enum class EEquipableItemType : uint8
 {

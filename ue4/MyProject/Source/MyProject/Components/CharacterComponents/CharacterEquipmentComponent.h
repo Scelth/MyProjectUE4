@@ -28,14 +28,13 @@ public:
 
 	void ReloadCurrentWeapon();
 	void ReloadAmmoInCurrentWeapon(int32 NumberOfAmmo = 0, bool bCheckIsFull = false);
-
 	void EquipItemInSlot(EEquipmentSlots Slot);
 	void AttachCurrentItemToEquippedSocket();
 	void UnequipCurrentItem();
 	void EquipNextItem();
 	void EquipPreviousItem();
-
 	void LaunchCurrentThrowableItem();
+	void AddEquipmentItem(const TSubclassOf<AEquipableItem> EquipableItemClass);
 
 	bool IsEquipping() const { return bIsEquipping; }
 

@@ -2,8 +2,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "MyProject/MPTypes.h"
 #include "GenericTeamAgentInterface.h"
+#include "UObject/ScriptInterface.h"
+#include "MyProject/MPTypes.h"
 #include "MPBaseCharacter.generated.h"
 
 #pragma region Mantling Settings
@@ -42,7 +43,10 @@ struct FMantlingSettings
 class UMPBaseCharacterMovementComponent;
 class UCharacterEquipmentComponent;
 class UMPCharacterAttributesComponent;
+class UCharacterInventoryComponent;
 class AInteractiveActor;
+class IInteractable;
+class UInventoryItem;
 #pragma endregion
 
 typedef TArray<AInteractiveActor*, TInlineAllocator<10>> TInteractiveActorsArray;
@@ -54,11 +58,13 @@ class MYPROJECT_API AMPBaseCharacter : public ACharacter, public IGenericTeamAge
 
 public:
 	TMulticastDelegate<void(bool)> OnAimingStateChangedEvent;
+	TDelegate<void(FName)> OnInteractableObjectFound;
 
 #pragma region Base
 	AMPBaseCharacter(const FObjectInitializer& ObjectInitializer);
 
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
 	virtual void Tick(float DeltaTime) override;
 	virtual void PossessedBy(AController* NewController) override;
 #pragma endregion
@@ -108,6 +114,11 @@ public:
 
 	virtual void OnStartProne(float HeightAdjust);
 	virtual void OnEndProne(float HeightAdjust);
+
+	void Interact();
+	void AddEquipmentItem(const TSubclassOf<class AEquipableItem> EquipableItemClass);
+	bool PickupItem(TWeakObjectPtr<UInventoryItem> ItemToPickup);
+	void UseInventory(APlayerController* PlayerController);
 
 #pragma region Interaction
 	void RegisterInteractiveActor(AInteractiveActor* InteractiveActor);
@@ -189,6 +200,15 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character | Team")
 	ETeams Team = ETeams::None;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character | Team", meta = (ClampMin = 0.f, UIMin = 0.f))
+	float LineOfSightDistance = 500.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character | Components")
+	UCharacterInventoryComponent* CharacterInventoryComponent;
+
+	UPROPERTY()
+	TScriptInterface<IInteractable> LineOfSightObject;
 #pragma endregion
 
 #pragma region Sprint
@@ -210,6 +230,8 @@ protected:
 #pragma endregion
 
 	bool CanMantle() const;
+
+	void TraceLineOfSight();
 
 private:
 #pragma region Property

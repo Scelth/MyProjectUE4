@@ -6,10 +6,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "MyProject/MPTypes.h"
 
-void AMPAICharacterController::BeginPlay()
+void AMPAICharacterController::SetupPatrolling()
 {
-	Super::BeginPlay();
-
 	UAIPatrolingComponent* PatrollingComponent = CachedAICharacter->GetPatrolingComponent();
 
 	if (PatrollingComponent->CanPatrol())
@@ -34,6 +32,7 @@ void AMPAICharacterController::SetPawn(APawn* InPawn)
 	{
 		CachedAICharacter = StaticCast<AMPAICharacter*>(InPawn);
 		RunBehaviorTree(CachedAICharacter->GetBehaviorTree());
+		SetupPatrolling();
 	}
 
 	else

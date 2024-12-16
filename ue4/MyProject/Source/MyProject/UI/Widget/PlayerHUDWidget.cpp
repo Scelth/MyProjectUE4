@@ -3,6 +3,7 @@
 #include "PlayerAttributesWidget.h"
 #include "ReticleWidget.h"
 #include "AmmoWidget.h"
+#include "HighlightInteractable.h"
 
 UPlayerAttributesWidget* UPlayerHUDWidget::GetPlayetAttributesWidget()
 {
@@ -17,4 +18,30 @@ UReticleWidget* UPlayerHUDWidget::GetReticleWidget()
 UAmmoWidget* UPlayerHUDWidget::GetAmmoWidget()
 {
 	return WidgetTree->FindWidget<UAmmoWidget>(AmmoWidgetName);
+}
+
+void UPlayerHUDWidget::SetHighlightInteractableVisibility(bool bIsVisible)
+{
+	if (!IsValid(InteractableKey))
+	{
+		return;
+	}
+
+	if (bIsVisible)
+	{
+		InteractableKey->SetVisibility(ESlateVisibility::Visible);
+	}
+
+	else
+	{
+		InteractableKey->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void UPlayerHUDWidget::SetHightlightInteractableActionText(FName KeyName)
+{
+	if (IsValid(InteractableKey))
+	{
+		InteractableKey->SetActionText(KeyName);
+	}
 }

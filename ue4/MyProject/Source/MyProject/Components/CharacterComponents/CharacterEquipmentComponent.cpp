@@ -240,6 +240,23 @@ void UCharacterEquipmentComponent::LaunchCurrentThrowableItem()
 	}
 }
 
+void UCharacterEquipmentComponent::AddEquipmentItem(const TSubclassOf<AEquipableItem> EquipableItemClass)
+{
+	ARangeWeaponItem* RangeWeaponObject = Cast<ARangeWeaponItem>(EquipableItemClass->GetDefaultObject());
+
+	if (!IsValid(RangeWeaponObject))
+	{
+		return;
+	}
+
+	AmunitionArray[(uint32)RangeWeaponObject->GetAmunitionType()] += RangeWeaponObject->GetMaxAmmo();
+	
+	if (IsValid(CurrentEquippedWeapon))
+	{
+		OnCurrentWeaponAmmoChanged(CurrentEquippedWeapon->GetAmmo());
+	}
+}
+
 uint32 UCharacterEquipmentComponent::NextItemsArraySlotIndex(uint32 CurrentSlotIndex)
 {
 	if (CurrentSlotIndex == ItemsArray.Num() - 1)
